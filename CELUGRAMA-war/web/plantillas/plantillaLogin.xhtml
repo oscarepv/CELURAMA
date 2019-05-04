@@ -1,0 +1,47 @@
+<?xml version='1.0' encoding='UTF-8' ?> 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html">
+    <h:head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <meta http-equiv="pragma" content="no-cache"/>
+        <meta http-equiv="cache-control" content="no-cache"/>
+        <meta http-equiv="expires" content="0"/>
+        <link href="./resources/css/cssLayout.css" rel="stylesheet" type="text/css" />
+        <link href="./resources/css/jquery-ui.css" rel="stylesheet" type="text/css" />
+        <link rel="shortcut icon" href="./resources/banner.png" type="image/png" />
+
+        <title>Celugrama</title>
+
+    </h:head>
+
+    <h:body>
+        <h:form id="plantilla">
+            <div id="top" style="color: white;">
+
+
+
+
+                <ui:insert name="top">
+                    <ui:include src="cabeceraLogin.xhtml" />
+
+
+                </ui:insert>
+            </div>
+
+            <div id="content"  class="center_content">
+                <ui:insert name="content">
+                </ui:insert>
+            </div>
+
+            <div id="bottom">
+                <ui:insert name="bottom">
+                    <ui:include src="pie.xhtml" />
+                </ui:insert>
+
+            </div>
+        </h:form>
+    </h:body>
+    <!--<h:outputStylesheet library="org.icefaces.component.skins" name="redmond.css" />-->
+</html>

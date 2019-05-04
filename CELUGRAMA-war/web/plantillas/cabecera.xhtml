@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ace="http://www.icefaces.org/icefaces/components">
+    <body>
+        <ui:composition>
+            <h:panelGrid columns="2" width="100%" style="text-align: left; margin-top:5px;" columnClasses="column1,column2" >
+                <h:graphicImage alt="Celugrama" url="../resources/celugrama.png" value="../resources/celugrama.png" height="150" />
+<!--                <h:panelGrid columns="1" width="100%">
+                    <h:outputLabel value="#{logueoCelugrama.usuario.tipo eq 'L' ? 'LIDER:' : 'USUARIO:'}"/>
+                    <h:outputLabel  value="#{logueoCelugrama.usuario.nombres}"/>
+                    <h:outputLabel value="Código:" />
+                    <h:outputLabel value="#{logueoCelugrama.usuario.codigo == null ? 'Sin codigo' : logueoCelugrama.usuario.codigo}"/>
+                    
+                </h:panelGrid>-->
+                <ace:menuBar style="width: 100%">
+                    <ace:menuItem value="#{logueoCelugrama.usuario.tipo eq 'L' ? 'LIDER:' : 'USUARIO:'}" styleClass="bold"/>
+                    <ace:menuItem value="#{logueoCelugrama.usuario.nombres}"/>
+                    <ace:menuItem value="Código:" styleClass="bold"/>
+                    <ace:menuItem value="#{logueoCelugrama.usuario.codigo == null ? 'Sin codigo' : logueoCelugrama.usuario.codigo}" />
+                </ace:menuBar>
+            </h:panelGrid>
+
+            <h:panelGrid columns="2" width="100%" style="text-align: left; margin-top: 5px;" rendered="#{logueoCelugrama.modelo ne null}" columnClasses="column1, column2">
+                <ace:menuBar id="mainBar" autoSubmenuDisplay="true" model="#{logueoCelugrama.modelo}" style="width: 99%"/>
+                <ace:menuButton id="menuButton100" effect="slide" effectDuration="200"  value="Sistema" style="width: 100%">
+                    <ace:menuItem value="#{logueoCelugrama.usuario.userid}" icon="ui-icon ui-icon-person"/>
+                    <ace:menuItem action="#{logueoCelugrama.cambiar()}" value="Cambio de clave" icon="ui-icon ui-icon-key" />
+                    <ace:menuItem action="#{logueoCelugrama.logout()}" value="Cerrar Sesión" icon="ui-icon ui-icon-power"/>
+                </ace:menuButton>
+            </h:panelGrid>
+        </ui:composition>
+    </body>
+</html>
+
+

@@ -1,0 +1,594 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ace="http://www.icefaces.org/icefaces/components"
+      >
+    <h:head>
+
+    </h:head>
+    <h:body  >
+
+        <ui:composition template="../plantillas/plantilla.xhtml">
+            <!-- Aqui va todo el codigo de la pagina -->
+            <ui:define name="content">
+                <ace:panel id="panel"
+                           header="#{celulasACelugrama.perfil.menu.texto}"
+                           closable="false"
+                           toggleable="true"
+                           rendered="#{!celulasACelugrama.formularioTemas.mostrar}"
+                           >
+                    <h:panelGrid columns="1" width="100%">
+
+                        <ace:menuBar autoSubmenuDisplay="true" >
+                            <ace:menuItem value="Buscar" icon="ui-icon ui-icon-search"  action="#{celulasACelugrama.buscar()}"/>
+                            <ace:menuItem value="Nuevo" icon="ui-icon ui-icon-document" action="#{celulasACelugrama.crear()}"/>
+                            <ace:menuItem value="Subir Celulas" icon="ui-icon ui-icon-script" action="#{celulasACelugrama.cargarDatos()}"/>
+                            <ace:menuItem value="Subir Fecha Celulas" icon="ui-icon ui-icon-script" action="#{celulasACelugrama.cargarDatosFechas()}"/>
+                            <ace:menuItem value="Subir Temas" icon="ui-icon ui-icon-script" action="#{celulasACelugrama.cargarDatosTemas()}"/>
+                            <!--<ace:menuItem value="Subir Archivo Asistentes" icon="ui-icon ui-icon-script" action="#{celulasACelugrama.cargarDatosAsistentes()}"/>-->                           
+                        </ace:menuBar>
+                        <ace:messages rendered="#{!celulasACelugrama.formulario.mostrar} "/>
+                    </h:panelGrid>
+
+                </ace:panel>
+
+                <ace:submitMonitor id="submitMonitorPanel"
+                                   for="panel"
+                                   blockUI="panel"
+                                   autoCenter="true"
+                                   activeLabel="Un Momento por favor"/>
+                <ace:panel 
+                    header="Resultado Búsqueda"
+                    closable="false"
+                    toggleable="true"
+                    rendered="#{!celulasACelugrama.formularioTemas.mostrar}"
+                    >
+                    <h:panelGrid columns="3" styleClass="centeredPanelGrid">
+                        <h:outputLabel  value="Exportar a:"/>
+                        <h:selectOneRadio  value="#{celulasACelugrama.formulario.pantalla}" required="true">
+                            <f:ajax disabled="false"/>
+                            <f:selectItem itemValue="csv" itemLabel="CSV"/>
+                            <f:selectItem itemValue="pdf" itemLabel="PDF"/>
+                            <f:selectItem itemValue="xls" itemLabel="XLS"/>
+                            <f:selectItem itemValue="xml" itemLabel="XML"/>
+                        </h:selectOneRadio>
+                        <ace:dataExporter id="dataExporter" 
+                                          label="Exportar Archivo" 
+                                          type="#{celulasACelugrama.formulario.pantalla}" 
+                                          target="tabla" fileName="Celugrama"/>
+                    </h:panelGrid>
+
+                    <h:panelGrid width="100%">
+                        <ace:dataTable id="tabla" 
+                                       value="#{celulasACelugrama.celulas}"
+                                       var="item"
+                                       paginator="true"
+                                       lazy="true"
+                                       resizableColumns="true"
+                                       rowIndexVar="row"
+                                       paginatorPosition="both"
+                                       rowsPerPageTemplate="15,20,25,50,100"
+                                       currentPageReportTemplate="Registro {startRecord}/{totalRecords} Página {currentPage}/{totalPages} "
+                                       paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks}  {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                       rows="15"
+                                       >
+                            <ace:column  headerText="Registro" style="text-align: right">
+                                <h:outputText value="#{row+1}"/>
+                            </ace:column>
+                            <ace:column style="text-align: left" headerText="Acciones">
+                                <ace:menuButton id="menuButton" effect="slide" effectDuration="200" value="..." >
+                                    <ace:menuItem action="#{celulasACelugrama.modificar()}" value="Editar" icon="ui-icon ui-icon-pencil"/>
+                                    <ace:menuItem action="#{celulasACelugrama.temas()}" value="Agregar" icon="ui-icon ui-icon-script"/>
+                                    <ace:menuItem action="#{celulasACelugrama.eliminar()}" value="Borrar" icon="ui-icon ui-icon-trash"/>
+                                </ace:menuButton>
+                            </ace:column> 
+                            <ace:column  headerText="Codigo" style="text-align: left" filterBy="#{item.codigo}">
+                                <h:outputText  value="#{item.codigo}"/>
+                            </ace:column>
+                            <ace:column  headerText="Fecha" style="text-align: left">
+                                <h:outputText  value="#{celulasACelugrama.getTextoFecha(item.fecha)}" />
+<!--                                    <f:convertDateTime  parent="dd/MM/yyyy"/>
+                                </h:outputText>-->
+                            </ace:column>
+                            <ace:column  headerText="hora" style="text-align: center">
+                                <h:outputText  value="#{item.hora}">
+                                    <f:convertDateTime  pattern="HH:mm"/>
+                                </h:outputText>
+                            </ace:column>
+                            <ace:column  headerText="Codio Lider" sortBy="#{item.lider.codigo}" filterBy="#{item.lider.codigo}" style="text-align: center">
+                                <h:outputText  value="#{item.lider.codigo}"/>
+                            </ace:column>
+                            <ace:column  headerText="Lider" sortBy="#{item.lider.nombres}" filterBy="#{item.lider.nombres}" style="text-align: center">
+                                <h:outputText  value="#{item.lider.nombres}"/>
+                            </ace:column>
+
+                            <ace:column  headerText="Dirección" style="text-align: center">
+                                <h:outputText  value="#{item.direccion}"/>
+                            </ace:column>
+                            <ace:column  headerText="Telefono" style="text-align: center">
+                                <h:outputText  value="#{item.telefono}"/>
+                            </ace:column>
+                            <ace:column  headerText="Sector" style="text-align: center">
+                                <h:outputText  value="#{item.sector}"/>
+                            </ace:column>
+                            <ace:column  headerText="Nombre anfitrion" style="text-align: center">
+                                <h:outputText  value="#{item.nombreanfitrion}"/>
+                            </ace:column>
+                            <ace:column  headerText="Nombre timoteo" style="text-align: center">
+                                <h:outputText  value="#{item.nombretimoteo}"/>
+                            </ace:column>
+                            <ace:column  headerText="Red" style="text-align: center">
+                                <h:outputText  value="#{item.red}"/>
+                            </ace:column>
+                        </ace:dataTable>
+                    </h:panelGrid>
+                </ace:panel>
+                <ace:dialog 
+                    header="#{celulasACelugrama.perfil.menu.texto}"
+                    closable="false"
+                    modal="true"
+                    draggable="true"
+                    showEffect="clip"
+                    hideEffect="fade"
+                    rendered="#{celulasACelugrama.formulario.mostrar}"
+                    visible="#{celulasACelugrama.formulario.mostrar}">
+                    <h:panelGrid columns="2">
+                        <ace:tabSet style="clear: both">
+                            <ace:tabPane>  
+                                <f:facet name="label">
+                                    Datos principales
+                                </f:facet>
+                                <ace:panel header="LIDER" rendered="#{!celulasACelugrama.formulario.modificar}">
+                                    <ui:include src="../BuscarUsuario.xhtml" rendered="#{!usuariosGrpCelugrama.formulario.mostrar}"/>
+                                </ace:panel>
+                                <ace:panel header="LIDER" rendered="#{celulasACelugrama.formulario.modificar}">
+                                    <h:panelGrid columns="2">
+                                        <h:outputLabel value="Nombres:" />
+                                        <h:outputLabel value="#{celulasACelugrama.celula.lider.nombres}" />
+                                        <h:outputLabel value="Codigo" />
+                                        <h:outputLabel  value="#{celulasACelugrama.celula.lider.codigo}"/>
+                                    </h:panelGrid>                                </ace:panel>
+
+                                <h:panelGrid rendered="#{!celulasACelugrama.formulario.modificar and !celulasACelugrama.formulario.borrar }">
+                                    <h:outputLabel value="Buscar codigo" />
+                                    <ace:checkboxButton value="#{celulasACelugrama.buscarCodigo}">
+                                        <ace:ajax execute="all"/>
+                                    </ace:checkboxButton> 
+                                </h:panelGrid>
+
+                                <h:panelGrid columns="2" rendered="#{celulasACelugrama.buscarCodigo}">
+                                    <h:inputText value="#{celulasACelugrama.pbuscar}" />
+                                    <ace:menuBar autoSubmenuDisplay="true" >
+                                        <ace:menuItem value="Buscar" icon="ui-icon ui-icon-search"  action="#{celulasACelugrama.buscarCelula()}">
+                                            <!--<ace:ajax execute="all"/>-->  
+                                        </ace:menuItem>                                        
+                                    </ace:menuBar>
+                                </h:panelGrid>
+
+                                <h:panelGrid columns="2">
+                                    <h:outputLabel value="Codigo" for="codigo" />
+
+                                    <h:inputText id="codigo" value="#{celulasACelugrama.celula.codigo}" disabled="#{celulasACelugrama.formulario.modificar}" />                                                                             
+                                    <h:outputLabel value="Direccion" for="direccion" />
+                                    <h:inputText id="direccion" value="#{celulasACelugrama.celula.direccion}" />                                                                             
+                                    <h:outputLabel value="Sector" for="sector" />
+                                    <h:inputText id="sector" value="#{celulasACelugrama.celula.sector}" />                                                                             
+                                    <h:outputLabel value="Nombre anfitrion" for="anfitrion" />
+                                    <h:inputText id="anfitrion" value="#{celulasACelugrama.celula.nombreanfitrion}" />                                                                             
+                                    <h:outputLabel value="Nombre timoteo" for="timoteo" />
+                                    <h:inputText id="timoteo" value="#{celulasACelugrama.celula.nombretimoteo}" />                                                                             
+                                    <h:outputLabel value="Telefono" for="telefono" />
+                                    <h:inputText id="telefono" value="#{celulasACelugrama.celula.telefono}" />                                                                             
+                                    <h:outputLabel value="Red" for="red" />
+                                    <h:selectOneMenu value="#{celulasACelugrama.red}">
+                                        <f:selectItems value="#{codigosCelugrama.comboRed}"/>
+                                    </h:selectOneMenu>
+<!--                                    <h:inputText id="red" value="#{celulasACelugrama.celula.red}" /> -->
+                                    <h:outputLabel value="Fecha:" />
+                                    <ace:dateTimeEntry navigator="true" value="#{celulasACelugrama.celula.fecha}" 
+                                                       popupIcon="ui-icon ui-icon-calendar" renderAsPopup="true" 
+                                                       pattern="dd/MM/yyyy" label="dd/MM/yyyy" labelPosition="infield">
+                                        <f:convertDateTime pattern="dd/MM/yyyy" />
+                                    </ace:dateTimeEntry>
+                                    <h:outputLabel value= "Hora:" />
+                                    <ace:dateTimeEntry navigator="true" value="#{celulasACelugrama.celula.hora}"
+                                                       popupIcon="ui-icon ui-icon-calendar" renderAsPopup="true" timeOnly="true"
+                                                       pattern="HH:mm" label="HH:mm" labelPosition="infield"
+                                                       >
+                                        <f:convertDateTime pattern="HH:mm"/>
+                                    </ace:dateTimeEntry>
+                                    <h:outputLabel value="Promedio de Asistente" for="a" />
+                                    <h:inputText id="a" value="#{celulasACelugrama.celula.promedioa}" />                                                                             
+                                    <h:outputLabel value="Invitados" for="i" />
+                                    <h:inputText id="i" value="#{celulasACelugrama.celula.invitados}" />                                                                             
+                                    <h:outputLabel value="Celulas no realizadas" for="cn" />
+                                    <h:inputText id="cn" value="#{celulasACelugrama.celula.celulasn}" />                                                                             
+                                </h:panelGrid>
+                            </ace:tabPane>
+
+                        </ace:tabSet>
+                    </h:panelGrid>
+                    <h:panelGrid columns="1" width="100%">
+                        <ace:menuBar autoSubmenuDisplay="true" >
+                            <ace:menuItem value="Grabar" icon="ui-icon ui-icon-disk" rendered="#{celulasACelugrama.formulario.nuevo}" 
+                                          action="#{celulasACelugrama.insertar()}"/>
+                            <ace:menuItem value="Grabar" icon="ui-icon ui-icon-disk" 
+                                          action="#{celulasACelugrama.grabar()}" 
+                                          rendered="#{celulasACelugrama.formulario.modificar}" />
+                            <ace:menuItem action="#{celulasACelugrama.borrar()}" 
+                                          value="¿Esta seguro de Borrar el registro?" icon="ui-icon ui-icon-trash"
+                                          rendered="#{celulasACelugrama.formulario.borrar}"/>
+                            <ace:menuItem value="Salir" icon="ui-icon ui-icon-close" 
+                                          action="#{celulasACelugrama.formulario.cancelar()}"/>
+                        </ace:menuBar>
+                        <ace:messages rendered="#{celulasACelugrama.formulario.mostrar}"/>
+                        <!--<h:messages style="color: red;font-style: italic;font-weight: bold"/>--> 
+                    </h:panelGrid>
+                </ace:dialog>
+
+                <ace:panel
+                    rendered="#{celulasACelugrama.formularioTemas.mostrar}"
+                    >
+                    <h:panelGrid columns="1" width="100%">
+                        <ace:menuBar autoSubmenuDisplay="true" >
+                            <ace:menuItem value="Salir" icon="ui-icon ui-icon-close" 
+                                          action="#{celulasACelugrama.formularioTemas.cancelar()}"/>
+                        </ace:menuBar>    
+                    </h:panelGrid>
+                    <ace:panel
+                        header="Lider"
+                        >
+                        <h:panelGrid columns="6" width="100%">
+                            <h:outputLabel value="Nombres:" />
+                            <h:outputText value="#{celulasACelugrama.celula.lider.nombres}" />                                                                                                     
+                            <h:outputLabel value="Cedula:" />
+                            <h:outputText value="#{celulasACelugrama.celula.lider.identificacion}" />                                                                             
+                            <h:outputLabel value="Telefono:"/>
+                            <h:outputText value="#{celulasACelugrama.celula.lider.telefono}" />                                                                             
+                            <h:outputLabel value="Correo:"/>
+                            <h:outputText  value="#{celulasACelugrama.celula.lider.email}" />                                                                             
+                            <h:outputLabel value="Codigo:" />
+                            <h:outputText value="#{celulasACelugrama.celula.lider.codigo}" />                                                                                                                                                                                    
+                        </h:panelGrid>
+                    </ace:panel>
+                    <ace:panel
+                        header="Celula"
+                        >
+
+                        <h:panelGrid columns="6" width="100%">
+                            <h:outputLabel value="Codigo:" />
+                            <h:outputText value="#{celulasACelugrama.celula.codigo}" />                                                                             
+                            <h:outputLabel value="Direccion:"/>
+                            <h:outputText value="#{celulasACelugrama.celula.direccion}" />                                                                             
+                            <h:outputLabel value="Sector:"/>
+                            <h:outputText  value="#{celulasACelugrama.celula.sector}" />                                                                             
+                            <h:outputLabel value="Nombre anfitrion:" />
+                            <h:outputText value="#{celulasACelugrama.celula.nombreanfitrion}" />                                                                             
+                            <h:outputLabel value="Nombre timoteo:" />
+                            <h:outputText value="#{celulasACelugrama.celula.nombretimoteo}" />                                                                             
+                            <h:outputLabel value="Telefono:" />
+                            <h:outputText  value="#{celulasACelugrama.celula.telefono}" />                                                                             
+                            <h:outputLabel value="Red:"/>
+                            <h:outputText value="#{celulasACelugrama.celula.red}" />
+                            <h:outputLabel value="Fecha:"/>
+                            <h:outputText  value="#{celulasACelugrama.getTextoFecha(celulasACelugrama.celula.fecha) }"/>
+<!--                                <f:convertDateTime  parent="dd/MM/yyyy"/>
+                            </h:outputText>-->
+                            <h:outputLabel value="Hora"/>
+                            <h:outputText  value="#{celulasACelugrama.celula.hora}">
+                                <f:convertDateTime  pattern="HH:mm"/>
+                            </h:outputText>
+                            <h:outputLabel value="Promedio de Asistente:"/>
+                            <h:outputText value="#{celulasACelugrama.celula.promedioa}" />                                                                             
+                            <h:outputLabel value="Invitados:"/>
+                            <h:outputText value="#{celulasACelugrama.celula.invitados}" />                                                                             
+                            <h:outputLabel value="Celulas no realizadas:"/>
+                            <h:outputText value="#{celulasACelugrama.celula.celulasn}" />                                                                             
+                        </h:panelGrid>
+                    </ace:panel>
+                    <ace:panel
+                        header="Lista de temas"
+                        >
+                        <h:panelGrid columns="1" width="100%">
+                            <ace:menuBar autoSubmenuDisplay="true" >
+                                <ace:menuItem value="Nuevo" icon="ui-icon ui-icon-document" action="#{celulasACelugrama.nuevoTema()}"/>
+                            </ace:menuBar>
+                            <ace:messages/>
+                        </h:panelGrid>
+
+                        <h:panelGrid width="100%">
+                            <ace:dataTable id="tablaTemas" 
+                                           value="#{celulasACelugrama.listaTemas}"
+                                           var="tema"
+                                           paginator="true"
+                                           resizableColumns="true"
+                                           rowIndexVar="row"
+                                           paginatorPosition="both"
+                                           rowsPerPageTemplate="15,20,25,50,100"
+                                           currentPageReportTemplate="Registro {startRecord}/{totalRecords} Página {currentPage}/{totalPages} "
+                                           paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks}  {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                           rows="15"
+                                           binding="#{celulasACelugrama.formularioTema.fila}">
+                                <ace:column  headerText="Semana" style="text-align: right">
+                                    <h:outputText value="#{row+1}"/>
+                                </ace:column>
+                                <ace:column style="text-align: left">
+                                    <ace:menuButton id="menuButton" effect="slide" effectDuration="200" value="..." >
+                                        <ace:menuItem action="#{celulasACelugrama.modificarTema()}" value="Editar" icon="ui-icon ui-icon-pencil"/>
+                                        <ace:menuItem action="#{celulasACelugrama.eliminarTema()}" value="Borrar" icon="ui-icon ui-icon-trash"/>
+                                    </ace:menuButton>
+                                </ace:column> 
+<!--                                <ace:column  headerText="Código" sortBy="#{tema.codigo}" style="text-align: left">
+                                    <h:outputText  value="#{tema.codigo}"/>
+                                </ace:column>-->
+                                <ace:column  headerText="Tema"  style="text-align: left">
+                                    <h:outputText  value="#{tema.temas}"/>
+                                </ace:column>
+                                <ace:column  headerText="Observacion"  style="text-align: left">
+                                    <h:outputText  value="#{tema.observacion}"/>
+                                </ace:column>
+                                <ace:column  headerText="Fecha" style="text-align: center">
+                                    <h:outputText  value="#{celulasACelugrama.getTextoFecha(tema.fecha)}"/>
+<!--                                        <f:convertDateTime  parent="dd/MM/yyyy"/>
+                                    </h:outputText>-->
+                                </ace:column>
+                            </ace:dataTable>
+                        </h:panelGrid>
+
+                    </ace:panel>
+                    <ace:panel
+                        header="Asistentes"
+                        >
+                        <h:panelGrid columns="1" width="100%">
+                            <ace:menuBar autoSubmenuDisplay="true" >
+                                <ace:menuItem value="Agregar Asistentes" icon="ui-icon ui-icon-document" action="#{celulasACelugrama.nuevoAsistente()}"/>
+                            </ace:menuBar>
+                            <ace:messages/>
+                        </h:panelGrid>
+
+                        <h:panelGrid width="100%">
+                            <ace:dataTable id="tablaA" 
+                                           value="#{celulasACelugrama.asitencias}"
+                                           var="asis"
+                                           paginator="true"
+                                           lazy="false"
+                                           resizableColumns="true"
+                                           rowIndexVar="row"
+                                           paginatorPosition="both"
+                                           rowsPerPageTemplate="15,20,25,50,100"
+                                           currentPageReportTemplate="Registro {startRecord}/{totalRecords} Página {currentPage}/{totalPages} "
+                                           paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks}  {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                           rows="15"
+                                           >
+                                <ace:column  headerText="Registro" style="text-align: right">
+                                    <h:outputText value="#{row+1}"/>
+                                </ace:column>
+                                <ace:column  headerText="Nombres" sortBy="#{asis.asistente.nombres}" filterBy="#{asis.asistente.nombres}" style="text-align: left">
+                                    <h:outputText  value="#{asis.asistente.nombres}"/>
+                                </ace:column>
+                                <ace:column  headerText="Cedula" filterBy="#{asis.asistente.identificacion}" style="text-align: left">
+                                    <h:outputText  value="#{asis.asistente.identificacion}"/>
+                                </ace:column>                                                             
+                            </ace:dataTable>
+                        </h:panelGrid>
+
+                    </ace:panel>
+
+                </ace:panel>
+
+                <ace:dialog 
+                    header="#{celulasACelugrama.perfil.menu.texto}"
+                    closable="false"
+                    modal="true"
+                    draggable="true"
+                    showEffect="clip"
+                    hideEffect="fade"
+                    rendered="#{celulasACelugrama.formularioTema.mostrar}"
+                    visible="#{celulasACelugrama.formularioTema.mostrar}">
+                    <h:panelGrid columns="2">
+                        <ace:tabSet style="clear: both">
+                            <ace:tabPane>  
+                                <f:facet name="label">
+                                    Datos principales
+                                </f:facet>
+                                <h:panelGrid columns="2">
+                                    <h:outputLabel value="Codigo" for="codigotema" />
+                                    <h:inputText id="codigotema" value="#{celulasACelugrama.tema.codigo}" disabled="#{celulasACelugrama.formularioTema.modificar}" />                                                                                                          
+                                    <h:outputLabel value="Tema" for="tema" />
+                                    <h:inputText id="tema" value="#{celulasACelugrama.tema.temas}" /> 
+                                    <h:outputLabel value="Fecha:" />
+                                    <ace:dateTimeEntry navigator="true" id="fecha" value="#{celulasACelugrama.tema.fecha}" 
+                                                       popupIcon="ui-icon ui-icon-calendar" renderAsPopup="true" 
+                                                       pattern="dd/MM/yyyy" label="dd/MM/yyyy" labelPosition="infield">
+                                        <f:convertDateTime pattern="dd/MM/yyyy" />
+                                    </ace:dateTimeEntry> 
+                                    <h:outputLabel value="Observacion" for="observacion" />
+                                    <h:inputTextarea id="observacion" value="#{celulasACelugrama.tema.observacion}"  style="width: 100% ; text-align: justify;" cols="30" rows="4" /> 
+
+<!--                                    <h:inputText id="observacion" value="#{celulasACelugrama.tema.observacion}" />                                                                             -->
+
+                                </h:panelGrid>
+                            </ace:tabPane>
+
+                        </ace:tabSet>
+                    </h:panelGrid>
+                    <h:panelGrid columns="1" width="100%">
+                        <ace:menuBar autoSubmenuDisplay="true" >
+                            <ace:menuItem value="Grabar" icon="ui-icon ui-icon-disk" rendered="#{celulasACelugrama.formularioTema.nuevo}" 
+                                          action="#{celulasACelugrama.insertarTema()}"/>
+                            <ace:menuItem value="Grabar" icon="ui-icon ui-icon-disk" 
+                                          action="#{celulasACelugrama.grabarTema()}" 
+                                          rendered="#{celulasACelugrama.formularioTema.modificar}" />
+                            <ace:menuItem action="#{celulasACelugrama.borrarTema()}" 
+                                          value="¿Esta seguro de Borrar el registro?" icon="ui-icon ui-icon-trash"
+                                          rendered="#{celulasACelugrama.formularioTema.borrar}"/>
+                            <ace:menuItem value="Salir" icon="ui-icon ui-icon-close" 
+                                          action="#{celulasACelugrama.formularioTema.cancelar()}"/>
+                        </ace:menuBar>
+                        <ace:messages />
+                        <!--<h:messages style="color: red;font-style: italic;font-weight: bold"/>--> 
+                    </h:panelGrid>
+                </ace:dialog>
+
+
+                <ace:dialog 
+                    header="#{celulasACelugrama.perfil.menu.texto}"
+                    closable="false"
+                    modal="true"
+                    draggable="true"
+                    showEffect="clip"
+                    hideEffect="fade"
+                    rendered="#{celulasACelugrama.formularioAsistentes.mostrar}"
+                    visible="#{celulasACelugrama.formularioAsistentes.mostrar}">
+
+                    <h:panelGrid width="100%">
+                        <ace:dataTable id="tablaAsis" 
+                                       value="#{celulasACelugrama.asitenciasaux}"
+                                       var="asisP"
+                                       paginator="true"
+                                       lazy="false"
+                                       resizableColumns="true"
+                                       rowIndexVar="row"
+                                       paginatorPosition="both"
+                                       rowsPerPageTemplate="15,20,25,50,100"
+                                       currentPageReportTemplate="Registro {startRecord}/{totalRecords} Página {currentPage}/{totalPages} "
+                                       paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks}  {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                       rows="15"
+                                       >
+                            <ace:column  headerText="Registro" style="text-align: right">
+                                <h:outputText value="#{row+1}"/>
+                            </ace:column>                   
+                            <ace:column  headerText="Nombres" sortBy="#{asisP.asistente.nombres}" filterBy="#{asisP.asistente.nombres}" style="text-align: left">
+                                <h:outputText  value="#{asisP.asistente.nombres}"/>
+                            </ace:column>
+                            <ace:column  headerText="Cedula" sortBy="#{asisP.asistente.identificacion}" filterBy="#{asisP.asistente.identificacion}" style="text-align: left">
+                                <h:outputText  value="#{asisP.asistente.identificacion}"/>
+                            </ace:column>
+                            <ace:column  headerText="Agregar" style="text-align: left">
+                                <ace:checkboxButton value="#{asisP.activo}"/>                              
+                            </ace:column>
+
+                        </ace:dataTable>
+                    </h:panelGrid>
+
+                    <h:panelGrid columns="1" width="100%">
+                        <ace:menuBar autoSubmenuDisplay="true" >
+
+                            <ace:menuItem value="Grabar" icon="ui-icon ui-icon-disk" 
+                                          action="#{celulasACelugrama.grabarAsistentes()}" 
+                                          rendered="#{celulasACelugrama.formularioAsistentes.modificar}" />
+
+                            <ace:menuItem value="Salir" icon="ui-icon ui-icon-close" 
+                                          action="#{celulasACelugrama.formularioAsistentes.cancelar()}"/>
+                        </ace:menuBar>
+                        <ace:messages />
+                        <!--<h:messages style="color: red;font-style: italic;font-weight: bold"/>--> 
+                    </h:panelGrid>
+                </ace:dialog>
+                <!-- Fin -->
+                <!--cuadro de subida de datos-->
+                <ace:dialog 
+                    header="Subida de Datos"
+                    closable="false"
+                    modal="true"
+                    draggable="true"
+                    showEffect="clip"
+                    hideEffect="fade"
+                    position="center"
+                    rendered="#{celulasACelugrama.formularioSubida.mostrar}"
+                    visible="#{celulasACelugrama.formularioSubida.mostrar}">
+                    <ace:panel>           
+                        <h:panelGrid columns="5" rendered="#{celulasACelugrama.identificador eq 1}">
+                            <h:outputLabel value="Delimitador:" />
+                            <ace:textEntry value="#{celulasACelugrama.delimitador}" size="1" />
+                            <h:outputLabel value="Archivo a Subir:" />
+                            <ace:fileEntry
+                                fileEntryListener="#{celulasACelugrama.archivoListenerSimple}" 
+                                maxFileSize="1500000000" 
+                                maxFileSizeMessage="El tamaño máximo admitido es 15 MB." 
+                                maxTotalSize="1500000000" 
+                                maxTotalSizeMessage="El tamaño máximo admitido es 15 MB." 
+                                useOriginalFilename="true" 
+                                useSessionSubdir="true"
+                                label="Subido con éxito"
+                                />
+
+                            <h:commandButton type="submit" value="Cargar datos"/>
+                        </h:panelGrid>
+                        <h:panelGrid columns="5" rendered="#{celulasACelugrama.identificador eq 2}">
+                            <h:outputLabel value="Delimitador:" />
+                            <ace:textEntry value="#{celulasACelugrama.delimitador}" size="1" />
+                            <h:outputLabel value="Archivo a Subir:" />
+                            <ace:fileEntry
+                                fileEntryListener="#{celulasACelugrama.archivoListenerTemas}" 
+                                maxFileSize="1500000000" 
+                                maxFileSizeMessage="El tamaño máximo admitido es 15 MB." 
+                                maxTotalSize="1500000000" 
+                                maxTotalSizeMessage="El tamaño máximo admitido es 15 MB." 
+                                useOriginalFilename="true" 
+                                useSessionSubdir="true"
+                                label="Subido con éxito"
+                                />
+
+                            <h:commandButton type="submit" value="Cargar datos"/>
+                        </h:panelGrid>
+                        <h:panelGrid columns="5" rendered="#{celulasACelugrama.identificador eq 3}">
+                            <h:outputLabel value="Delimitador:" />
+                            <ace:textEntry value="#{celulasACelugrama.delimitador}" size="1" />
+                            <h:outputLabel value="Archivo a Subir:" />
+                            <ace:fileEntry
+                                fileEntryListener="#{celulasACelugrama.archivoListenerAsistentes}" 
+                                maxFileSize="1500000000" 
+                                maxFileSizeMessage="El tamaño máximo admitido es 15 MB." 
+                                maxTotalSize="1500000000" 
+                                maxTotalSizeMessage="El tamaño máximo admitido es 15 MB." 
+                                useOriginalFilename="true" 
+                                useSessionSubdir="true"
+                                label="Subido con éxito"
+                                />
+
+                            <h:commandButton type="submit" value="Cargar datos"/>
+                        </h:panelGrid>
+                        <h:panelGrid columns="5" rendered="#{celulasACelugrama.identificador eq 4}">
+                            <h:outputLabel value="Delimitador:" />
+                            <ace:textEntry value="#{celulasACelugrama.delimitador}" size="1" />
+                            <h:outputLabel value="Archivo a Subir:" />
+                            <ace:fileEntry
+                                fileEntryListener="#{celulasACelugrama.archivoListenerFechas}" 
+                                maxFileSize="1500000000" 
+                                maxFileSizeMessage="El tamaño máximo admitido es 15 MB." 
+                                maxTotalSize="1500000000" 
+                                maxTotalSizeMessage="El tamaño máximo admitido es 15 MB." 
+                                useOriginalFilename="true" 
+                                useSessionSubdir="true"
+                                label="Subido con éxito"
+                                />
+
+                            <h:commandButton type="submit" value="Cargar datos"/>
+                        </h:panelGrid>
+
+                    </ace:panel>
+                    <h:panelGrid columns="2">
+                        <ace:menuBar>
+                            <ace:menuItem value="Salir" icon="ui-icon ui-icon-close" 
+                                          action="#{celulasACelugrama.formularioSubida.cancelar()}"/>
+                        </ace:menuBar>
+                        <ace:messages/>
+                    </h:panelGrid>
+
+                </ace:dialog>
+
+                <!-- Fin -->
+
+            </ui:define>
+
+
+        </ui:composition>
+
+    </h:body>
+
+</html>

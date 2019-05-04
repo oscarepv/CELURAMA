@@ -1,0 +1,56 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!--
+    Document   : PrincipalVista
+    Created on : 28/08/2011, 11:31:00 AM
+    Author     : luisfernando
+-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ace="http://www.icefaces.org/icefaces/components">
+    <h:head>
+
+    </h:head>
+    <h:body>
+        <h:form id="forma">
+            <ui:composition template="plantillas/plantillaLogin.xhtml">
+                <ui:define name="content">
+                    <ace:dialog 
+                        header="Cambio de clave"
+                        closable="false"
+                        modal="true"
+                        draggable="true"
+                        showEffect="clip"
+                        hideEffect="fade"
+                        rendered="true"
+                        visible="true">
+
+                        <h:panelGroup>
+                            <h:panelGrid columns="2">
+                                <h:outputLabel value="Clave Nueva :" />
+                                <h:inputSecret value="#{logueoCelugrama.claveNueva}"/>
+                                <h:outputLabel value="Retipee Clave nueva:" />
+                                <h:inputSecret  value="#{logueoCelugrama.claveRetpeada}"/>
+                            </h:panelGrid>
+
+                            <h:panelGrid columns="2">
+                                <ace:menuBar autoSubmenuDisplay="true" >
+                                    <ace:menuItem value="Grabar" icon="ui-icon ui-icon-disk" action="#{logueoCelugrama.cambio()}" />
+                                    <ace:menuItem value="Salir" icon="ui-icon ui-icon-close" action="#{logueoCelugrama.salir()}" />
+                                </ace:menuBar>
+                                <ace:messages/>
+
+                            </h:panelGrid>
+
+                        </h:panelGroup>
+                       
+                    </ace:dialog>
+
+                </ui:define>
+                <!-- Fin -->
+            </ui:composition>
+        </h:form>
+    </h:body>
+
+</html>

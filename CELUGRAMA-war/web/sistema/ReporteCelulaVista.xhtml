@@ -1,0 +1,348 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ace="http://www.icefaces.org/icefaces/components"
+      xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+      >
+    <h:head>
+
+    </h:head>
+    <h:body  >
+
+        <ui:composition template="../plantillas/plantilla.xhtml">
+            <!-- Aqui va todo el codigo de la pagina -->
+            <ui:define name="content">
+                <ace:panel id="panel"
+                           header="#{reporteCelugrama.perfil.menu.texto}"
+                           closable="false"
+                           toggleable="true"
+                           rendered="#{!reporteCelugrama.formulario.mostrar}"
+                           >
+                    <h:panelGrid columns="1" width="100%">
+                        <ace:menuBar autoSubmenuDisplay="true" >
+                            <ace:menuItem value="Buscar" icon="ui-icon ui-icon-search"  action="#{reporteCelugrama.buscar()}"/>                         
+                        </ace:menuBar>
+                        <ace:messages/>
+                    </h:panelGrid>
+                </ace:panel>
+                <ace:submitMonitor id="submitMonitorPanel"
+                                   for="panel"
+                                   blockUI="panel"
+                                   autoCenter="true"
+                                   activeLabel="Un Momento por favor"/>
+                <ace:panel 
+                    header="Resultado Búsqueda"
+                    closable="false"
+                    toggleable="true"
+                    rendered="#{!reporteCelugrama.formulario.mostrar}"
+                    >
+                    <!--                    <h:panelGrid columns="3" styleClass="centeredPanelGrid">
+                                            <h:outputLabel  value="Exportar a:"/>
+                                            <h:selectOneRadio  value="#{reporteCelugrama.formulario.pantalla}" required="true">
+                                                <f:ajax disabled="false"/>
+                                                <f:selectItem itemValue="csv" itemLabel="CSV"/>
+                                                <f:selectItem itemValue="pdf" itemLabel="PDF"/>
+                                                <f:selectItem itemValue="xls" itemLabel="XLS"/>
+                                                <f:selectItem itemValue="xml" itemLabel="XML"/>
+                                            </h:selectOneRadio>
+                                            <ace:dataExporter id="dataExporter" 
+                                                              label="Exportar Archivo" 
+                                                              type="#{reporteCelugrama.formulario.pantalla}" 
+                                                              target="tabla" fileName="SeguridadSoyYo"/>
+                                        </h:panelGrid>-->
+                    <h:panelGrid width="100%">
+                        <ace:dataTable id="tabla" 
+                                       value="#{reporteCelugrama.celulas}"
+                                       var="item"
+                                       paginator="true"
+                                       lazy="true"
+                                       resizableColumns="true"
+                                       rowIndexVar="row"
+                                       paginatorPosition="both"
+                                       rowsPerPageTemplate="15,20,25,50,100"
+                                       currentPageReportTemplate="Registro {startRecord}/{totalRecords} Página {currentPage}/{totalPages} "
+                                       paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks}  {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                       rows="15"
+                                       >
+                            <ace:column  headerText="Registro" style="text-align: right">
+                                <h:outputText value="#{row+1}"/>
+                            </ace:column>
+                            <ace:column style="text-align: left" headerText="Acciones">
+                                <ace:menuButton id="menuButton" effect="slide" effectDuration="200" value="..." >
+                                    <ace:menuItem action="#{reporteCelugrama.ver()}" value="Ver" icon="ui-icon ui-icon-pencil"/>
+                                </ace:menuButton>
+                            </ace:column> 
+                            <ace:column  headerText="Codigo" style="text-align: left">
+                                <h:outputText  value="#{item.codigo}"/>
+                            </ace:column>
+                            <ace:column  headerText="Fecha" sortBy="#{item.fecha}" style="text-align: center">
+                                <h:outputText  value="#{reporteCelugrama.getTextoFecha(item.fecha)}"/>
+<!--                                    <f:convertDateTime  parent="dd/MM/yyyy"/>
+                                </h:outputText>-->
+                            </ace:column>
+                            <ace:column  headerText="Lider" sortBy="#{item.lider.nombres}" style="text-align: center">
+                                <h:outputText  value="#{item.lider.nombres}"/>
+                            </ace:column>
+
+                            <ace:column  headerText="Dirección" sortBy="#{item.direccion}" style="text-align: center">
+                                <h:outputText  value="#{item.direccion}"/>
+                            </ace:column>
+                            <ace:column  headerText="Telefono" sortBy="#{item.telefono}" style="text-align: center">
+                                <h:outputText  value="#{item.telefono}"/>
+                            </ace:column>
+                            <ace:column  headerText="Sector" sortBy="#{item.sector}" style="text-align: center">
+                                <h:outputText  value="#{item.sector}"/>
+                            </ace:column>
+                            <ace:column  headerText="Nombre anfitrion" sortBy="#{item.nombreanfitrion}" style="text-align: center">
+                                <h:outputText  value="#{item.nombreanfitrion}"/>
+                            </ace:column>
+                            <ace:column  headerText="Nombre timoteo" sortBy="#{item.nombretimoteo}" style="text-align: center">
+                                <h:outputText  value="#{item.nombretimoteo}"/>
+                            </ace:column>
+                            <ace:column  headerText="Red" sortBy="#{item.red}" style="text-align: center">
+                                <h:outputText  value="#{item.red}"/>
+                            </ace:column>
+                        </ace:dataTable>
+                    </h:panelGrid>
+                </ace:panel>
+                <ace:panel
+                    header="#{reporteCelugrama.perfil.menu.texto}"
+                    rendered="#{reporteCelugrama.formulario.mostrar}"
+                    >
+                    <h:panelGrid columns="1" width="100%">
+                        <ace:menuBar autoSubmenuDisplay="true" >
+                            <ace:menuItem value="Salir" icon="ui-icon ui-icon-close" 
+                                          action="#{reporteCelugrama.formulario.cancelar()}"/>
+                             <ace:menuItem value="Generar Informe" icon="ui-icon ui-icon-gear" 
+                                 action="#{reporteCelugrama.generarInformePdf()}"/>
+                             <ace:menuItem value="Generar Informe Blanco" icon="ui-icon ui-icon-gear" 
+                                          action="#{reporteCelugrama.generarInformePdfBlanco()}"/>
+                        </ace:menuBar> 
+                         <ace:messages/>
+                        <ace:dynamicResource fileName="Celugrama.pdf" 
+                                 attachment="true" 
+                                 label="Descargar documento"
+                                 rendered="#{reporteCelugrama.archivoPlanilla!=null}"
+                                 resource="#{reporteCelugrama.archivoPlanilla}" 
+                                 type="button"/>
+                        <ace:dynamicResource fileName="Celugrama.pdf" 
+                                 attachment="true" 
+                                 label="Descargar documento Blanco"
+                                 rendered="#{reporteCelugrama.archivoPlanillaBlanco!=null}"
+                                 resource="#{reporteCelugrama.archivoPlanillaBlanco}" 
+                                 type="button"/>
+                    </h:panelGrid>
+                    
+                    <ace:panel
+                        header="Lider"
+                        >
+                        <h:panelGrid columns="6" width="100%">
+                            <h:outputLabel value="Nombres:" />
+                            <h:outputText value="#{celulasCelugrama.seguridadbean.logueado.nombres}" />                                                                                                     
+                            <h:outputLabel value="Cedula:" />
+                            <h:outputText value="#{celulasCelugrama.seguridadbean.logueado.identificacion}" />                                                                             
+                            <h:outputLabel value="Telefono:"/>
+                            <h:outputText value="#{celulasCelugrama.seguridadbean.logueado.telefono}" />                                                                             
+                            <h:outputLabel value="Correo:"/>
+                            <h:outputText  value="#{celulasCelugrama.seguridadbean.logueado.email}" />                                                                             
+                            <h:outputLabel value="Codigo:" />
+                            <h:outputText value="#{celulasCelugrama.seguridadbean.logueado.codigo}" />                                                                                                                                                                                    
+                        </h:panelGrid>
+                    </ace:panel>
+                    <ace:panel
+                        header="Celula"
+                        >
+
+                        <h:panelGrid columns="6" width="100%">
+                            <h:outputLabel value="Codigo:" />
+                            <h:outputText value="#{reporteCelugrama.celula.codigo}" />                                                                             
+                            <h:outputLabel value="Direccion:"/>
+                            <h:outputText value="#{reporteCelugrama.celula.direccion}" />                                                                             
+                            <h:outputLabel value="Sector:"/>
+                            <h:outputText  value="#{reporteCelugrama.celula.sector}" />                                                                             
+                            <h:outputLabel value="Nombre anfitrion:" />
+                            <h:outputText value="#{reporteCelugrama.celula.nombreanfitrion}" />                                                                             
+                            <h:outputLabel value="Nombre timoteo:" />
+                            <h:outputText value="#{reporteCelugrama.celula.nombretimoteo}" />                                                                             
+                            <h:outputLabel value="Telefono:" />
+                            <h:outputText  value="#{reporteCelugrama.celula.telefono}" />                                                                             
+                            <h:outputLabel value="Red:"/>
+                            <h:outputText value="#{reporteCelugrama.celula.red}" /> 
+                            <h:outputLabel value="Fecha:"/>
+                            <h:outputText  value="#{reporteCelugrama.getTextoFecha(reporteCelugrama.celula.fecha)}"/>
+<!--                                <f:convertDateTime  parent="dd/MM/yyyy"/>
+                            </h:outputText>-->
+                            <h:outputLabel value="Hora"/>
+                            <h:outputText  value="#{reporteCelugrama.celula.hora}">
+                                <f:convertDateTime  pattern="HH:mm"/>
+                            </h:outputText>
+                            <h:outputLabel value="Promedio de Asistente:"/>
+                            <h:outputText value="#{reporteCelugrama.celula.promedioa}" />                                                                             
+                            <h:outputLabel value="Invitados:"/>
+                            <h:outputText value="#{reporteCelugrama.celula.invitados}" />                                                                             
+                            <h:outputLabel value="Celulas no realizadas:"/>
+                            <h:outputText value="#{reporteCelugrama.celula.celulasn}" />                                                                             
+                        </h:panelGrid>
+                    </ace:panel>
+                    <ace:panel
+                        header="Lista de temas"
+                        >
+                        <h:panelGrid width="100%">
+                            <ace:dataTable id="tablaTemas" 
+                                           value="#{reporteCelugrama.listaTemas}"
+                                           var="tema"
+                                           paginator="true"
+                                           resizableColumns="true"
+                                           rowIndexVar="row"
+                                           paginatorPosition="both"
+                                           rowsPerPageTemplate="15,20,25,50,100"
+                                           currentPageReportTemplate="Registro {startRecord}/{totalRecords} Página {currentPage}/{totalPages} "
+                                           paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks}  {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                           rows="15"
+                                           >
+                                <ace:column  headerText="Semana" style="text-align: right">
+                                    <h:outputText value="#{row+1}"/>
+                                </ace:column>
+<!--                                <ace:column  headerText="Código" sortBy="#{tema.codigo}" style="text-align: left">
+                                    <h:outputText  value="#{tema.codigo}"/>
+                                </ace:column>-->
+                                <ace:column  headerText="Tema"  style="text-align: left">
+                                    <h:outputText  value="#{tema.temas}"/>
+                                </ace:column>
+                                <ace:column  headerText="Observacion"  style="text-align: left">
+                                    <h:outputText  value="#{tema.observacion}"/>
+                                </ace:column>
+                                <ace:column  headerText="Fecha"  style="text-align: center">
+                                    <h:outputText  value="#{reporteCelugrama.getTextoFecha(tema.fecha)}"/>
+<!--                                        <f:convertDateTime  parent="dd/MM/yyyy"/>
+                                    </h:outputText>-->
+                                </ace:column>
+                            </ace:dataTable>
+                        </h:panelGrid>
+
+                    </ace:panel>
+                    <ace:panel
+                        header="Asistentes"
+                        >
+                        <h:panelGrid width="100%">
+                            <ace:dataTable id="tablaA" 
+                                           value="#{reporteCelugrama.asitencias}"
+                                           var="asis"
+                                           paginator="true"
+                                           lazy="false"
+                                           resizableColumns="true"
+                                           rowIndexVar="row"
+                                           paginatorPosition="both"
+                                           rowsPerPageTemplate="15,20,25,50,100"
+                                           currentPageReportTemplate="Registro {startRecord}/{totalRecords} Página {currentPage}/{totalPages} "
+                                           paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks}  {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                           rows="50"
+                                           binding="#{reporteCelugrama.formulario.fila}"
+                                           >
+                                <ace:column  headerText="Nro." style="text-align: right">
+                                    <h:outputText value="#{row+1}"/>
+                                </ace:column>
+                                <ace:column  headerText="Nombres" sortBy="#{asis.asistente.nombres}" style="text-align: left">
+                                    <h:outputText  value="#{asis.asistente.nombres}"/>
+                                </ace:column>
+                                <ace:column  headerText="Telefono" sortBy="#{asis.asistente.telefono}" style="text-align: left">
+                                    <h:outputText  value="#{asis.asistente.telefono}"/>
+                                </ace:column>
+                                <ace:column  headerText="Servicio" sortBy="#{asis.asistente.servicio}" style="text-align: left">
+                                    <h:outputText  value="#{asis.asistente.servicio}"/>
+                                </ace:column>
+                                <ace:column  headerText="Comite" sortBy="#{asis.asistente.comite}" style="text-align: left">
+                                    <h:outputText  value="#{asis.asistente.comite}"/>
+                                </ace:column>                                
+                                <ace:column  headerText="Asistencia" style="text-align: left">
+                                    <ace:dataTable id="tablaP" 
+                                                   value="#{reporteCelugrama.traerUnTemas()}"                                                  
+                                                   >
+                                        <c:forEach items="#{reporteCelugrama.listaTemas}" var="asistencia">
+                                            <ace:column  headerText="#{asistencia.contador}" style="text-align: center">
+                                                <h:outputText  value="#{reporteCelugrama.traerCheck(asistencia, asis)}"/>
+                                            </ace:column> 
+                                        </c:forEach>
+                                    </ace:dataTable>
+                                </ace:column>
+                                <ace:column  headerText="Lectura" style="text-align: left">
+                                    <ace:dataTable id="tablaL" 
+                                                   value="#{reporteCelugrama.traerUnTemas()}"                                                  
+                                                   >
+                                        <c:forEach items="#{reporteCelugrama.listaTemas}" var="asistencia">
+                                            <ace:column  headerText="#{asistencia.contador}" style="text-align: center">
+                                                <h:outputText  value="#{reporteCelugrama.traerCheckL(asistencia, asis)}"/>
+                                            </ace:column> 
+                                        </c:forEach>
+                                    </ace:dataTable>
+                                </ace:column>
+                                <ace:column  headerText="PRE" style="text-align: center">
+                                    <h:outputText  value="#{reporteCelugrama.traerCheckC(asis.celula, asis.asistente,'pre') == false ? 'X' : '/'}" />
+                                </ace:column>
+                                <ace:column  headerText="ENC" style="text-align: center">
+                                    <h:outputText  value="#{reporteCelugrama.traerCheckC(asis.celula, asis.asistente,'enc')== false ? 'X' : '/'}"/>
+                                </ace:column>
+                                <ace:column  headerText="POS" style="text-align: center">
+                                    <h:outputText  value="#{reporteCelugrama.traerCheckC(asis.celula, asis.asistente,'pos')== false ? 'X' : '/'}"/>
+                                </ace:column>
+                                <ace:column  headerText="Nivel 1" style="text-align: center">
+                                    <h:outputText  value="#{reporteCelugrama.traerCheckC(asis.celula, asis.asistente,'n1') == false ? 'X' : '/'}"/>
+                                </ace:column>
+                                <ace:column  headerText="Nivel 2" style="text-align: center">
+                                    <h:outputText  value="#{reporteCelugrama.traerCheckC(asis.celula, asis.asistente,'n2') == false ? 'X' : '/'}"/>
+                                </ace:column>
+                                <ace:column  headerText="Nivel 3" style="text-align: center">
+                                    <h:outputText  value="#{reporteCelugrama.traerCheckC(asis.celula, asis.asistente,'n3')== false ? 'X' : '/'}"/>
+                                </ace:column>
+                                 <ace:row condition="group" groupBy="#{reporteCelugrama.asitencias}" pos="after" styleClass="titulo" >
+                                    <ace:column colspan="5">
+                                        <h:outputLabel value="Total" />
+                                    </ace:column>
+                                    <ace:column colspan="1">
+                                        <ace:column  headerText="Lectura" style="text-align: left">
+                                            <ace:dataTable id="tablaL2" 
+                                                           value="#{reporteCelugrama.traerUnTemas()}"                                                  
+                                                           >
+                                                <c:forEach items="#{reporteCelugrama.listaTemas}" var="asistencia">
+                                                    <ace:column  headerText="#{asistencia.contador}" rendered="#{asistencia.contador eq 1}" style="text-align: center">
+                                                        <h:outputText  value="#{reporteCelugrama.t1}"/>
+                                                    </ace:column> 
+                                                    <ace:column  headerText="#{asistencia.contador}" rendered="#{asistencia.contador eq 2}" style="text-align: center">
+                                                        <h:outputText  value="#{reporteCelugrama.t2}"/>
+                                                    </ace:column> 
+                                                    <ace:column  headerText="#{asistencia.contador}" rendered="#{asistencia.contador eq 3}" style="text-align: center">
+                                                        <h:outputText  value="#{reporteCelugrama.t3}"/>
+                                                    </ace:column> 
+                                                    <ace:column  headerText="#{asistencia.contador}" rendered="#{asistencia.contador eq 4}" style="text-align: center">
+                                                        <h:outputText  value="#{reporteCelugrama.t4}"/>
+                                                    </ace:column> 
+                                                    <ace:column  headerText="#{asistencia.contador}" rendered="#{asistencia.contador eq 5}" style="text-align: center">
+                                                        <h:outputText  value="#{reporteCelugrama.t5}"/>
+                                                    </ace:column> 
+                                                </c:forEach>
+                                            </ace:dataTable>
+                                        </ace:column>
+                                    </ace:column>
+                                    <ace:column colspan="7">
+                                        <h:outputLabel value=" " />
+                                    </ace:column>
+                                </ace:row>
+
+                            </ace:dataTable>
+                        </h:panelGrid>
+
+                    </ace:panel>
+
+                </ace:panel>
+
+            </ui:define>
+            <!-- Fin -->
+        </ui:composition>
+
+    </h:body>
+
+</html>

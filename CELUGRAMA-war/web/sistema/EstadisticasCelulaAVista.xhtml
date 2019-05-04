@@ -1,0 +1,321 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ace="http://www.icefaces.org/icefaces/components"
+      >
+    <h:head>
+
+    </h:head>
+    <h:body  >
+
+        <ui:composition template="../plantillas/plantilla.xhtml">
+            <ui:param name="title" value="#{msgs['example.ace.chart.title']}"/>
+            <ui:param name="description" value="#{msgs['example.ace.chart.description']}"/>
+            <!-- Aqui va todo el codigo de la pagina -->
+            <ui:define name="content">
+                <ace:panel id="panel"
+                           header="#{chartABean.perfil.menu.texto}"
+                           closable="false"
+                           toggleable="true"
+                           rendered="#{!chartABean.formulario.mostrar}"
+                           >
+                    <h:panelGrid columns="1" width="100%">
+                        <ace:menuBar autoSubmenuDisplay="true" >
+                            <ace:menuItem value="Buscar" icon="ui-icon ui-icon-search"  action="#{chartABean.buscar()}"/>                         
+                        </ace:menuBar>
+                        <!--                        <ace:menuBar autoSubmenuDisplay="true" >
+                                                    <ace:printer for="imprimirInscripcion"  />
+                                                </ace:menuBar>-->
+
+                        <ace:messages/>
+                    </h:panelGrid>
+                </ace:panel>
+                <ace:submitMonitor id="submitMonitorPanel"
+                                   for="panel"
+                                   blockUI="panel"
+                                   autoCenter="true"
+                                   activeLabel="Un Momento por favor"/>
+                <ace:panel 
+                    header="Resultado Búsqueda"
+                    closable="false"
+                    toggleable="true"
+                    rendered="#{!chartABean.formulario.mostrar}"
+                    >
+                    <!--                    <h:panelGrid columns="3" styleClass="centeredPanelGrid">
+                                            <h:outputLabel  value="Exportar a:"/>
+                                            <h:selectOneRadio  value="#{chartABean.formulario.pantalla}" required="true">
+                                                <f:ajax disabled="false"/>
+                                                <f:selectItem itemValue="csv" itemLabel="CSV"/>
+                                                <f:selectItem itemValue="pdf" itemLabel="PDF"/>
+                                                <f:selectItem itemValue="xls" itemLabel="XLS"/>
+                                                <f:selectItem itemValue="xml" itemLabel="XML"/>
+                                            </h:selectOneRadio>
+                                            <ace:dataExporter id="dataExporter" 
+                                                              label="Exportar Archivo" 
+                                                              type="#{chartABean.formulario.pantalla}" 
+                                                              target="tabla" fileName="SeguridadSoyYo"/>
+                                        </h:panelGrid>-->
+                    <h:panelGrid width="100%">
+                        <ace:dataTable id="tabla" 
+                                       value="#{chartABean.celulas}"
+                                       var="item"
+                                       paginator="true"
+                                       lazy="true"
+                                       resizableColumns="true"
+                                       rowIndexVar="row"
+                                       paginatorPosition="both"
+                                       rowsPerPageTemplate="15,20,25,50,100"
+                                       currentPageReportTemplate="Registro {startRecord}/{totalRecords} Página {currentPage}/{totalPages} "
+                                       paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks}  {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                       rows="15"
+                                       >
+                            <ace:column  headerText="Registro" style="text-align: right">
+                                <h:outputText value="#{row+1}"/>
+                            </ace:column>
+                            <ace:column style="text-align: left" headerText="Acciones">
+                                <ace:menuButton id="menuButton" effect="slide" effectDuration="200" value="..." >
+                                    <ace:menuItem action="#{chartABean.ver()}" value="Ver" icon="ui-icon ui-icon-pencil"/>
+                                </ace:menuButton>
+                            </ace:column> 
+                            <ace:column  headerText="Codigo" style="text-align: left" filterBy="#{item.codigo}">
+                                <h:outputText  value="#{item.codigo}"/>
+                            </ace:column>
+                            <ace:column  headerText="Fecha" style="text-align: center">
+                                <h:outputText  value="#{chartABean.getTextoFecha(item.fecha)}"/>
+<!--                                    <f:convertDateTime  parent="dd/MM/yyyy"/>
+                                </h:outputText>-->
+                            </ace:column>
+                            <ace:column  headerText="Codigo Lider" sortBy="#{item.lider.codigo}" style="text-align: center" filterBy="#{item.lider.codigo}">
+                                <h:outputText  value="#{item.lider.codigo}" />
+                            </ace:column>
+                            <ace:column  headerText="Lider" sortBy="#{item.lider.nombres}" style="text-align: center" filterBy="#{item.lider.nombres}">
+                                <h:outputText  value="#{item.lider.nombres}" />
+                            </ace:column>
+                            <ace:column  headerText="Dirección" sortBy="#{item.direccion}" style="text-align: center">
+                                <h:outputText  value="#{item.direccion}"/>
+                            </ace:column>
+                            <ace:column  headerText="Telefono" sortBy="#{item.telefono}" style="text-align: center">
+                                <h:outputText  value="#{item.telefono}"/>
+                            </ace:column>
+                            <ace:column  headerText="Sector" sortBy="#{item.sector}" style="text-align: center">
+                                <h:outputText  value="#{item.sector}"/>
+                            </ace:column>
+                            <ace:column  headerText="Nombre anfitrion" sortBy="#{item.nombreanfitrion}" style="text-align: center">
+                                <h:outputText  value="#{item.nombreanfitrion}"/>
+                            </ace:column>
+                            <ace:column  headerText="Nombre timoteo" sortBy="#{item.nombretimoteo}" style="text-align: center">
+                                <h:outputText  value="#{item.nombretimoteo}"/>
+                            </ace:column>
+                            <ace:column  headerText="Red" sortBy="#{item.red}" style="text-align: center">
+                                <h:outputText  value="#{item.red}"/>
+                            </ace:column>                        
+                        </ace:dataTable>
+                    </h:panelGrid>
+                </ace:panel>
+
+
+                <ace:panel
+                    header="#{chartABean.perfil.menu.texto}"
+                    rendered="#{chartABean.formulario.mostrar}"
+                    >
+                    <h:panelGrid columns="2" width="100%">
+                        <ace:menuBar autoSubmenuDisplay="true" >
+                            <ace:menuItem value="Salir" icon="ui-icon ui-icon-close" 
+                                          action="#{chartABean.formulario.cancelar()}"/>
+                        </ace:menuBar> 
+                        <h:commandButton value="Imprimir" class="ui-widget wijmo-wijmenu-item ui-state-default ui-corner-all" style="cursor: pointer; color: #555555; border: 1px;">
+                            <ace:printer for="imprimirInscripcion"  />
+                        </h:commandButton>
+                    </h:panelGrid>
+                    <ace:panel
+                        id="imprimirInscripcion">
+                        <h:panelGrid columns="1" width="100%" style="text-align: center; border-style: solid">
+                            <h:outputLabel value="Lider" /> 
+                        </h:panelGrid>
+                        <h:panelGrid columns="6" width="100%">
+                            <h:outputLabel value="Nombres:" />
+                            <h:outputText value="#{chartABean.celula.lider.nombres}" />                                                                                                     
+                            <!--                                <h:outputLabel value="Cedula:" />
+                                                            <h:outputText value="#{chartABean.celula.lider.identificacion}" />                                                                             
+                                                            <h:outputLabel value="Telefono:"/>
+                                                            <h:outputText value="#{chartABean.celula.lider.telefono}" />                                                                             
+                                                            <h:outputLabel value="Correo:"/>
+                                                            <h:outputText  value="#{chartABean.celula.lider.email}" />                                                                             -->
+                            <h:outputLabel value="Codigo:" />
+                            <h:outputText value="#{chartABean.celula.lider.codigo}" />                                                                                                                                                                                    
+                        </h:panelGrid>
+
+                        <h:panelGrid columns="1" width="100%" style="text-align: center; border-style: solid">
+                            <h:outputLabel value="Celula" /> 
+                        </h:panelGrid>
+
+                        <h:panelGrid columns="8" width="100%">
+                            <h:outputLabel value="Codigo:" />
+                            <h:outputText value="#{chartABean.celula.codigo}" />                                                                             
+                            <!--                                <h:outputLabel value="Direccion:"/>
+                                                            <h:outputText value="#{chartABean.celula.direccion}" />                                                                             -->
+                            <!--                                <h:outputLabel value="Sector:"/>
+                                                            <h:outputText  value="#{chartABean.celula.sector}" />                                                                             
+                                                            <h:outputLabel value="Nombre anfitrion:" />
+                                                            <h:outputText value="#{chartABean.celula.nombreanfitrion}" />                                                                             
+                                                            <h:outputLabel value="Nombre timoteo:" />
+                                                            <h:outputText value="#{chartABean.celula.nombretimoteo}" />                                                                             -->
+                            <!--                                <h:outputLabel value="Telefono:" />
+                                                            <h:outputText  value="#{chartABean.celula.telefono}" />                                                                             -->
+                            <h:outputLabel value="Red:"/>
+                            <h:outputText value="#{chartABean.celula.red}" /> 
+                            <h:outputLabel value="Fecha:"/>
+                            <h:outputText  value="#{chartABean.getTextoFecha(chartABean.celula.fecha)}"/>
+<!--                                <f:convertDateTime  parent="dd/MM/yyyy"/>
+                            </h:outputText>-->
+                            <h:outputLabel value="Hora"/>
+                            <h:outputText  value="#{chartABean.celula.hora}">
+                                <f:convertDateTime  pattern="HH:mm"/>
+                            </h:outputText>
+
+                            <!--                                <h:outputLabel value="Promedio de Asistente:"/>
+                                                            <h:outputText value="#{chartABean.celula.promedioa}" />                                                                             
+                                                            <h:outputLabel value="Invitados:"/>
+                                                            <h:outputText value="#{chartABean.celula.invitados}" />                                                                             
+                                                            <h:outputLabel value="Celulas no realizadas:"/>
+                                                            <h:outputText value="#{chartABean.celula.celulasn}" />                                                                             -->
+                        </h:panelGrid>
+
+                        <h:panelGrid width="100%">
+                            <ace:dataTable id="tablaTemas" 
+                                           value="#{chartABean.listaTemas}"
+                                           var="tema"
+                                           paginator="true"
+                                           resizableColumns="true"
+                                           rowIndexVar="row"
+                                           paginatorPosition="both"
+                                           rowsPerPageTemplate="15,20,25,50,100"
+                                           currentPageReportTemplate="Registro {startRecord}/{totalRecords} Página {currentPage}/{totalPages} "
+                                           paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks}  {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                           rows="15"
+                                           >
+                                <ace:column  headerText="Registro" style="text-align: right">
+                                    <h:outputText value="#{row+1}"/>
+                                </ace:column>
+<!--                                    <ace:column  headerText="Código" sortBy="#{tema.codigo}" style="text-align: left">
+                                    <h:outputText  value="#{tema.codigo}"/>
+                                </ace:column>-->
+                                <ace:column  headerText="Tema" style="text-align: left">
+                                    <h:outputText  value="#{tema.temas}"/>
+                                </ace:column>
+                                <ace:column  headerText="Observacion" style="text-align: left">
+                                    <h:outputText  value="#{tema.observacion}"/>
+                                </ace:column>
+                                <ace:column  headerText="Fecha" style="text-align: center">
+                                    <h:outputText  value="#{chartABean.getTextoFecha(tema.fecha)}"/>
+<!--                                        <f:convertDateTime  parent="dd/MM/yyyy"/>
+                                    </h:outputText>-->
+                                </ace:column>
+                            </ace:dataTable>
+                        </h:panelGrid>
+
+                        <h:panelGrid columns="2">
+                            <ace:panel
+                                header="Asistencia"
+                                >
+                                <h:form id="canvasFormA">
+                                    <ace:chart id="chartA"
+                                               animated="true"
+                                               value="#{chartABean.barData}"
+                                               stackSeries="true"
+                                               defaultAxesConfig="#{chartABean.barDemoDefaultAxis}"
+                                               xAxis="#{chartABean.barDemoXAxis}"
+                                               yAxes="#{chartABean.barDemoYAxes}"
+                                               legend="true"
+                                               legendPlacement="OUTSIDE_GRID"
+                                               highlighter="true"
+                                               highlighterLocation="N"
+                                               highlighterShowMarker="true"                                        
+                                               highlighterBringSeriesToFront="true"
+                                               defaultSeriesColors="#{chartABean.customDefaultColor}"                                           
+                                               style="width: 400px; height: 400px;"                                         
+                                               />
+
+                                </h:form>
+                            </ace:panel>
+                            <ace:panel
+                                header="Lectura"
+                                >
+                                <h:form id="canvasFormL">
+                                    <ace:chart id="chartL"
+                                               animated="true"
+                                               value="#{chartABean.barDataL}"
+                                               stackSeries="true"
+                                               defaultAxesConfig="#{chartABean.barDemoDefaultAxisL}"
+                                               xAxis="#{chartABean.barDemoXAxisL}"
+                                               yAxes="#{chartABean.barDemoYAxesL}"
+                                               legend="true"
+                                               legendPlacement="OUTSIDE_GRID"
+                                               highlighter="true"
+                                               highlighterLocation="N"
+                                               highlighterShowMarker="true"
+                                               highlighterBringSeriesToFront="true"
+                                               defaultSeriesColors="#{chartABean.customDefaultColor2}"
+                                               style="width: 400px; height: 400px;"/>
+                                </h:form>
+                            </ace:panel>
+                            <ace:panel
+                                header="U. de la vida"
+                                >
+                                <h:form id="canvasFormU">
+                                    <ace:chart id="chartU"
+                                               animated="false"
+                                               value="#{chartABean.barDataU}"
+                                               stackSeries="false"
+                                               defaultAxesConfig="#{chartABean.barDemoDefaultAxisU}"
+                                               xAxis="#{chartABean.barDemoXAxisU}"
+                                               yAxes="#{chartABean.barDemoYAxesU}"
+                                               legend="true"
+                                               legendPlacement="OUTSIDE_GRID"
+                                               highlighter="true"
+                                               highlighterLocation="N"
+                                               highlighterShowMarker="true"
+                                               highlighterBringSeriesToFront="true"
+                                               defaultSeriesColors="#{chartABean.customDefaultColo3}"
+                                               style="width: 400px; height: 400px;"/>
+
+                                </h:form>
+                            </ace:panel>
+
+                            <ace:panel
+                                header="Capacitacion Destino"
+                                >
+                                <h:form id="canvasFormD">
+                                    <ace:chart id="chartD"
+                                               animated="false"
+                                               value="#{chartABean.barDataC}"
+                                               stackSeries="false"
+                                               defaultAxesConfig="#{chartABean.barDemoDefaultAxisC}"
+                                               xAxis="#{chartABean.barDemoXAxisC}"
+                                               yAxes="#{chartABean.barDemoYAxesC}"
+                                               legend="true"
+                                               legendPlacement="OUTSIDE_GRID"
+                                               highlighter="true"
+                                               highlighterLocation="N"
+                                               highlighterShowMarker="true"
+                                               highlighterBringSeriesToFront="true"
+                                               style="width: 400px; height: 400px;"/>
+                                </h:form>
+                            </ace:panel>
+
+                        </h:panelGrid>
+
+                    </ace:panel>
+                </ace:panel>
+
+            </ui:define>
+            <!-- Fin -->
+        </ui:composition>
+
+    </h:body>
+
+</html>

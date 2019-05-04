@@ -1,0 +1,47 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!--
+    Document   : BuscarEmpleado
+    Created on : 04/10/2012, 05:32:47 PM
+    Author     : edwin
+-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ace="http://www.icefaces.org/icefaces/components"
+      >
+
+    <h:panelGrid columns="4" >
+        <h:panelGrid columns="2">
+            <ace:autoCompleteEntry 
+                value="#{entidadesCelugrama.nombresBuscar}"
+                width="300"
+                listVar="cooperado"
+                filterBy="#{cooperado.nombres}"
+                listValue="#{entidadesCelugrama.listaEntidades}"
+                valueChangeListener="#{entidadesCelugrama.cambiaApellido}"
+                textChangeListener="#{entidadesCelugrama.entidadChangeEventHandler}"
+                label="Nombre:"
+                labelPosition="left">
+                <f:facet name="row">
+                    <h:panelGrid columns="5"   style="text-align: left;font-size: xx-small" columnClasses="tipo">
+                        <h:outputText value="#{cooperado.nombres}"/>
+                        <h:outputText value="#{cooperado.identificacion}"/>
+                    </h:panelGrid>
+                </f:facet>
+                <ace:ajax execute="@all" />
+            </ace:autoCompleteEntry>
+        </h:panelGrid>
+
+        <h:panelGrid columns="2" rendered="#{entidadesCelugrama.entidad!=null}">
+            <h:outputLabel value="Nombres:" />
+            <h:outputLabel value="#{entidadesCelugrama.entidad.nombres}" />
+            <h:outputLabel value="Email:" />
+            <h:outputLabel  value="#{entidadesCelugrama.entidad.email}"/>
+            <h:outputLabel value="Codigo" />
+            <h:outputLabel  value="#{entidadesCelugrama.entidad.codigo}"/>
+        </h:panelGrid>
+        <ace:messages />
+
+    </h:panelGrid>
+</html>

@@ -1,0 +1,81 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:icecore="http://www.icefaces.org/icefaces/core"
+      xmlns:ace="http://www.icefaces.org/icefaces/components">
+    <h:head>
+        <link href="./resources/css/default.css" rel="stylesheet" type="text/css" />
+        <link href="./resources/css/cssLayout.css" rel="stylesheet" type="text/css" />
+        <!--<link rel="stylesheet" type="text/css" href="./xmlhttp/css/rime/rime.css"/>-->
+        <title>Celugrama</title>
+    </h:head>
+    <h:body>
+       
+        
+        <ui:composition template="./plantillas/plantillaLogin.xhtml">
+            <ui:define name="content">
+                <ace:dialog 
+                    header="BIENVENIDO"
+                    closable="false"
+                    modal="true"
+                    draggable="true"
+                    showEffect="clip"
+                    hideEffect="fade"
+                    rendered="true"
+                    visible="true">
+                    <h:panelGroup>
+
+                        <h:panelGrid columns="2">
+                            <h:outputLabel value="Usuario:"/>
+                            <h:inputText value="#{logueoCelugrama.userid}"/>
+                            <h:outputLabel  value="Contraseña:"/>
+                            <h:inputSecret value="#{logueoCelugrama.contrasenia}"/>
+                        </h:panelGrid>
+                        <h:panelGrid columns="1" width="100%">
+                            <ace:menuBar autoSubmenuDisplay="true" >
+                                <ace:menuItem value="Ingresar" icon="ui-icon ui-icon-key"  action="#{logueoCelugrama.login()}"/>
+                            </ace:menuBar>
+                            <icecore:defaultAction action="#{logueoCelugrama.login()}" key="Enter"/> 
+                            <ace:messages/>
+                        </h:panelGrid>
+                    </h:panelGroup>
+                </ace:dialog>
+
+
+                <ace:dialog 
+                    header="Cambio de Clave"
+                    closable="false"
+                    modal="true"
+                    draggable="false"
+                    showEffect="clip"
+                    hideEffect="fade"
+                    rendered="#{logueoCelugrama.formulario.mostrar}"
+                    visible="#{logueoCelugrama.formulario.mostrar}">
+                    <h:panelGroup>
+
+                        <h:panelGrid columns="2">
+                            <h:outputLabel  value="Contraseña Anterior:"/>
+                            <h:inputSecret value="#{logueoCelugrama.claveAnterior}"/>
+                            <h:outputLabel  value="Contraseña Nueva:"/>
+                            <h:inputSecret value="#{logueoCelugrama.claveNueva}"/>
+                            <h:outputLabel  value="Contraseña Nueva (Repetir):"/>
+                            <h:inputSecret value="#{logueoCelugrama.claveRetpeada}"/>
+                        </h:panelGrid>
+                        <ace:messages style="color: red;font-style: italic;font-weight: bold"/>
+                        <h:panelGrid columns="1" width="100%">
+                            <ace:menuBar autoSubmenuDisplay="true" >
+                                <ace:menuItem value="Grabar" icon="ui-icon ui-icon-disk"  action="#{logueoCelugrama.cambio()}"/>
+                            </ace:menuBar>                                 
+                        </h:panelGrid>
+                    </h:panelGroup>
+                </ace:dialog>
+                    
+            </ui:define>
+            <!--Fin--> 
+        </ui:composition>
+
+    </h:body>
+</html>

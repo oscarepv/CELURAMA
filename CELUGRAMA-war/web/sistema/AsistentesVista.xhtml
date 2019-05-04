@@ -1,0 +1,219 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!--
+    Document   : CodigosVista
+    Created on : Sep 20, 2011, 3:41:19 PM
+    Author     : edwin
+-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ace="http://www.icefaces.org/icefaces/components"
+      >
+    <h:head>
+
+    </h:head>
+    <h:body  >
+
+        <ui:composition template="../plantillas/plantilla.xhtml">
+            <!-- Aqui va todo el codigo de la pagina -->
+            <ui:define name="content">
+                <ace:panel id="panel"
+                           header="#{asistentesCelugrama.perfil.menu.texto}"
+                           closable="false"
+                           toggleable="true"
+                           >
+                    <h:panelGrid columns="1" width="100%">
+
+                        <ace:menuBar autoSubmenuDisplay="true" >
+                            <ace:menuItem value="Buscar" icon="ui-icon ui-icon-search"  action="#{asistentesCelugrama.buscar()}"/>
+                            <ace:menuItem value="Nuevo" icon="ui-icon ui-icon-document" action="#{asistentesCelugrama.crear()}"/>
+                            <ace:menuItem value="Subir Archivo" icon="ui-icon ui-icon-script" action="#{asistentesCelugrama.cargarDatos()}"/>
+                        </ace:menuBar>
+                        <ace:messages/>
+                    </h:panelGrid>
+
+                </ace:panel>
+                <ace:submitMonitor id="submitMonitorPanel"
+                                   for="panel"
+                                   blockUI="panel"
+                                   autoCenter="true"
+                                   activeLabel="Un Momento por favor"/>
+                <ace:panel 
+                    header="Resultado Búsqueda"
+                    closable="false"
+                    toggleable="true"
+                    >
+                    <h:panelGrid columns="3" styleClass="centeredPanelGrid">
+                        <h:outputLabel  value="Exportar a:"/>
+                        <h:selectOneRadio  value="#{asistentesCelugrama.formulario.pantalla}" required="true">
+                            <f:ajax disabled="false"/>
+                            <f:selectItem itemValue="csv" itemLabel="CSV"/>
+                            <f:selectItem itemValue="pdf" itemLabel="PDF"/>
+                            <f:selectItem itemValue="xls" itemLabel="XLS"/>
+                            <f:selectItem itemValue="xml" itemLabel="XML"/>
+                        </h:selectOneRadio>
+                        <ace:dataExporter id="dataExporter" 
+                                          label="Exportar Archivo" 
+                                          type="#{asistentesCelugrama.formulario.pantalla}" 
+                                          target="tabla" fileName="CELURAMA"/>
+                    </h:panelGrid>
+                  
+                    <h:panelGrid width="100%">
+                        <ace:dataTable id="tabla" 
+                                       value="#{asistentesCelugrama.entidades}"
+                                       var="item"
+                                       paginator="true"
+                                       lazy="true"
+                                       resizableColumns="true"
+                                       rowIndexVar="row"
+                                       paginatorPosition="both"
+                                       rowsPerPageTemplate="15,20,25,50,100"
+                                       currentPageReportTemplate="Registro {startRecord}/{totalRecords} Página {currentPage}/{totalPages} "
+                                       paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks}  {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                       rows="15"
+                                       >
+                            <ace:column  headerText="Registro" style="text-align: right">
+                                <h:outputText value="#{row+1}"/>
+                            </ace:column>
+                            <ace:column style="text-align: left">
+                                <ace:menuButton id="menuButton" effect="slide" effectDuration="200" value="..." >
+                                    <ace:menuItem action="#{asistentesCelugrama.modificar()}" value="Editar" icon="ui-icon ui-icon-pencil"/>
+                                    <ace:menuItem action="#{asistentesCelugrama.eliminar()}" value="Borrar" icon="ui-icon ui-icon-trash"/>
+                                </ace:menuButton>
+                            </ace:column> 
+                            <ace:column  headerText="Codigo" sortBy="#{item.codigo}" filterBy="#{item.codigo}" style="text-align: left">
+                                <h:outputText  value="#{item.codigo}"/>
+                            </ace:column>
+                            <ace:column  headerText="Nombres" sortBy="#{item.nombres}" filterBy="#{item.nombres}" style="text-align: center">
+                                <h:outputText  value="#{item.nombres}"/>
+                            </ace:column>
+                            <ace:column  headerText="Dirección" sortBy="#{item.direccion}" style="text-align: center">
+                                <h:outputText  value="#{item.direccion}"/>
+                            </ace:column>
+                            <ace:column  headerText="Edad" style="text-align: center">
+                                <h:outputText  value="#{item.edad}"/>
+                            </ace:column>
+                            <ace:column  headerText="Sexo" style="text-align: center">
+                                <h:outputText  value="#{item.sexo}"/>
+                            </ace:column>
+                            <ace:column  headerText="Telefono" style="text-align: center">
+                                <h:outputText  value="#{item.telefono}"/>
+                            </ace:column>
+                            <ace:column  headerText="Ministerial" style="text-align: center">
+                                <h:outputText  value="#{item.servicio}"/>
+                            </ace:column>
+                            <ace:column  headerText="Comites" style="text-align: center">
+                                <h:outputText  value="#{item.comite}"/>
+                            </ace:column>
+                        </ace:dataTable>
+                    </h:panelGrid>
+                </ace:panel>
+                <ace:dialog 
+                    header="#{asistentesCelugrama.perfil.menu.texto}"
+                    closable="false"
+                    modal="true"
+                    draggable="true"
+                    showEffect="clip"
+                    hideEffect="fade"
+                    rendered="#{asistentesCelugrama.formulario.mostrar}"
+                    visible="#{asistentesCelugrama.formulario.mostrar}">
+                    <h:panelGrid columns="2">
+                        <ace:tabSet style="clear: both">
+                            <ace:tabPane>  
+                                <f:facet name="label">
+                                    Datos principales
+                                </f:facet>
+                                <h:panelGrid columns="2">
+<!--                                    <h:outputLabel value="C.I.:" for="pin" />
+                                    <h:inputText id="pin" value="#{asistentesCelugrama.entidad.identificacion}" 
+                                                 title="Pin" valueChangeListener="#{asistentesCelugrama.cambiaCedula}">
+                                        <f:validator  validatorId="com.celugrama.utilitarios.ValidadorRuc"/>
+                                        <ace:ajax execute="@all"/>
+                                    </h:inputText>-->
+                                    <h:outputLabel value="Codigo" for="codigo" />
+                                    <h:inputText id="codigo" value="#{asistentesCelugrama.entidad.codigo}" disabled="#{asistentesCelugrama.formulario.modificar}"/>                              
+                                    <h:outputLabel value="Apellidos y nombres:" for="nombre1" />
+                                    <h:inputText id="nombre1" value="#{asistentesCelugrama.entidad.nombres}" title="Primer nombre" />                                                                
+                                    <h:outputLabel value="Direccion:" for="direccion" />
+                                    <h:inputText id="direccion" value="#{asistentesCelugrama.entidad.direccion}"  />
+                                    <h:outputLabel value="Edad" for="edad" />
+                                    <h:inputText id="edad" value="#{asistentesCelugrama.entidad.edad}"  />
+                                    <h:outputLabel value="Sexo" for="sexo" />
+                                    <h:inputText id="sexo" value="#{asistentesCelugrama.entidad.sexo}"  />
+                                    <h:outputLabel value="Telefono" for="telefono" />
+                                    <h:inputText id="celular" value="#{asistentesCelugrama.entidad.telefono}"  />
+                                    <h:outputLabel value="Ministerial" for="servicio" />
+                                    <h:inputText id="servicio" value="#{asistentesCelugrama.entidad.servicio}"  />
+                                    <h:outputLabel value="Comite" for="comite" />
+                                    <h:inputText id="comite" value="#{asistentesCelugrama.entidad.comite}"  />
+                                </h:panelGrid>
+                            </ace:tabPane>
+                           
+                        </ace:tabSet>
+                    </h:panelGrid>
+                    <h:panelGrid columns="1" width="100%">
+                        <ace:menuBar autoSubmenuDisplay="true" >
+                            <ace:menuItem value="Grabar" icon="ui-icon ui-icon-disk" rendered="#{asistentesCelugrama.formulario.nuevo}" 
+                                          action="#{asistentesCelugrama.insertar()}"/>
+                            <ace:menuItem value="Grabar" icon="ui-icon ui-icon-disk" 
+                                          action="#{asistentesCelugrama.grabar()}" 
+                                          rendered="#{asistentesCelugrama.formulario.modificar}" />
+                            <ace:menuItem action="#{asistentesCelugrama.borrar()}" 
+                                          value="¿Esta seguro de Borrar el registro?" icon="ui-icon ui-icon-trash"
+                                          rendered="#{asistentesCelugrama.formulario.borrar}"/>
+                            <ace:menuItem value="Salir" icon="ui-icon ui-icon-close" 
+                                          action="#{asistentesCelugrama.formulario.cancelar()}"/>
+                        </ace:menuBar>
+                        <ace:messages />
+                        <!--<h:messages style="color: red;font-style: italic;font-weight: bold"/>--> 
+                    </h:panelGrid>
+                </ace:dialog>
+                  <!--cuadro de subida de datos-->
+                <ace:dialog 
+                    header="Subida de Datos"
+                    closable="false"
+                    modal="true"
+                    draggable="true"
+                    showEffect="clip"
+                    hideEffect="fade"
+                    position="center"
+                    rendered="#{asistentesCelugrama.formularioSubida.mostrar}"
+                    visible="#{asistentesCelugrama.formularioSubida.mostrar}">
+                    <ace:panel>           
+                        <h:panelGrid columns="5">
+                            <h:outputLabel value="Delimitador:" />
+                            <ace:textEntry value="#{asistentesCelugrama.delimitador}" size="1" />
+                            <h:outputLabel value="Archivo a Subir:" />
+                            <ace:fileEntry
+                                fileEntryListener="#{asistentesCelugrama.archivoListenerSimple}" 
+                                maxFileSize="1500000000" 
+                                maxFileSizeMessage="El tamaño máximo admitido es 15 MB." 
+                                maxTotalSize="1500000000" 
+                                maxTotalSizeMessage="El tamaño máximo admitido es 15 MB." 
+                                useOriginalFilename="true" 
+                                useSessionSubdir="true"
+                                label="Subido con éxito"
+                               />
+                            
+                            <h:commandButton type="submit" value="Cargar datos"/>
+                        </h:panelGrid>
+                        
+                    </ace:panel>
+                    <h:panelGrid columns="2">
+                        <ace:menuBar>
+                            <ace:menuItem value="Salir" icon="ui-icon ui-icon-close" 
+                                          action="#{asistentesCelugrama.formularioSubida.cancelar()}"/>
+                        </ace:menuBar>
+                        <ace:messages/>
+                    </h:panelGrid>
+
+                </ace:dialog>
+            </ui:define>
+            <!-- Fin -->
+        </ui:composition>
+
+    </h:body>
+
+</html>
