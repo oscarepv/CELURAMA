@@ -6,13 +6,20 @@
 package com.celugrama.vistas;
 
 import com.celugrama.comun.ParametrosCelugramaBean;
+import com.celugrama.entidades.Asistenciacelulas;
+import com.celugrama.entidades.Asistencias;
+import com.celugrama.entidades.Crecimientos;
 import com.celugrama.entidades.Entidades;
 import com.celugrama.entidades.Menusistema;
 import com.celugrama.entidades.Perfiles;
 import com.celugrama.entidades.Roles;
+import com.celugrama.excepciones.BorrarException;
 import com.celugrama.excepciones.ConsultarException;
 import com.celugrama.excepciones.GrabarException;
 import com.celugrama.excepciones.InsertarException;
+import com.celugrama.servicios.AsistenciacelulasFacade;
+import com.celugrama.servicios.AsistenciasFacade;
+import com.celugrama.servicios.CrecimientosFacade;
 import com.celugrama.servicios.EntidadesFacade;
 import com.celugrama.utilitarios.Formulario;
 import com.celugrama.utilitarios.MensajesErrores;
@@ -79,6 +86,12 @@ public class AsistentesBean {
 
     @EJB
     private EntidadesFacade ejbEntidades;
+    @EJB
+    private CrecimientosFacade ejbCrecimientos;
+    @EJB
+    private AsistenciacelulasFacade ejbAsistenciacelulas;
+    @EJB
+    private AsistenciasFacade ejbAsistencias;
 
     @PostConstruct
     private void activar() {
@@ -121,7 +134,7 @@ public class AsistentesBean {
             return null;
         }
         entidad = new Entidades();
-        int valor = 0;
+        int valor = traerUltimoId();
         String codigo = generarCodigo(valor);
         Boolean parar = false;
         while (!parar) {
@@ -147,22 +160,25 @@ public class AsistentesBean {
         return null;
     }
 
-    private String generarCodigo(int valor) {
+    private Integer traerUltimoId() {
+        Integer valor = 0;
         try {
-            if (valor != 0) {
-                Map parametros = new HashMap();
-                parametros.put(";where", "o.tipo='A'");
-                return "CODASIS-" + (ejbEntidades.contar(parametros) + valor);
-            } else {
-                Map parametros = new HashMap();
-                parametros.put(";where", "o.tipo='A'");
-                return "CODASIS-" + ejbEntidades.contar(parametros);
-            }
-        } catch (ConsultarException ex) {
-            Logger.getLogger(AsistentesBean.class.getName()).log(Level.SEVERE, null, ex);
-        }
 
-        return null;
+            Map parameter = new HashMap();
+            parameter.put(";orden", "o.id desc");
+            if (ejbEntidades.contar(parameter) > 0) {
+                valor = ejbEntidades.contar(parameter);
+                return valor;
+            }
+
+        } catch (ConsultarException ex) {
+            Logger.getLogger(CelulasABean.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return valor;
+    }
+
+    private String generarCodigo(int valor) {
+        return "CODASIS-" + valor;
     }
 
     public String modificar() {
@@ -286,8 +302,25 @@ public class AsistentesBean {
             parametros.put("codigo", entidad.getCodigo());
             List<Entidades> listadoEntidades = ejbEntidades.encontarParametros(parametros);
             if (!listadoEntidades.isEmpty()) {
-                MensajesErrores.advertencia("Codigo de asistente ya existe");
-                return null;
+                int valor = traerUltimoId();
+                Boolean parar = false;
+                while (!parar) {
+                    parametros = new HashMap();
+                    parametros.put(";where", "o.codigo=:codigo");
+                    parametros.put("codigo", entidad.getCodigo());
+                    try {
+                        List<Entidades> listadoEntidadesAux = ejbEntidades.encontarParametros(parametros);
+                        if (listadoEntidadesAux.isEmpty()) {
+                            parar = true;
+                            break;
+                        }
+                    } catch (ConsultarException ex) {
+                        Logger.getLogger(AsistentesBean.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    entidad.setCodigo(generarCodigo(valor));
+                    valor++;
+
+                }
             }
             entidad.setActivo(Boolean.TRUE);
             entidad.setTipo("A");
@@ -335,11 +368,34 @@ public class AsistentesBean {
             return null;
         }
         try {
-            entidad.setActivo(Boolean.FALSE);
-            ejbEntidades.edit(entidad, getSeguridadbean().getLogueado().getUserid());
-        } catch (GrabarException ex) {
-            MensajesErrores.fatal(ex.getMessage() + "-" + ex.getCause());
-            Logger.getLogger("").log(Level.SEVERE, null, ex);
+            Map parametros = new HashMap();
+            parametros.put(";where", "o.asistente=:asistente");
+            parametros.put("asistente", entidad);
+            List<Asistenciacelulas> listaAsistencias = ejbAsistenciacelulas.encontarParametros(parametros);
+            for (Asistenciacelulas ac : listaAsistencias) {
+                parametros = new HashMap();
+                parametros.put(";where", "o.asistenciacelula=:asistenciacelula");
+                parametros.put("asistenciacelula", ac);
+                List<Asistencias> listaAsistenciasAux = ejbAsistencias.encontarParametros(parametros);
+                for (Asistencias a : listaAsistenciasAux) {
+                    ejbAsistencias.remove(a, getSeguridadbean().getLogueado().getUserid());
+                }
+                ejbAsistenciacelulas.remove(ac, getSeguridadbean().getLogueado().getUserid());
+            }
+
+            parametros = new HashMap();
+            parametros.put(";where", "o.entidad=:entidad");
+            parametros.put("entidad", entidad);
+            List<Crecimientos> listaCrecimientos = ejbCrecimientos.encontarParametros(parametros);
+            for (Crecimientos c : listaCrecimientos) {
+
+                ejbCrecimientos.remove(c, getSeguridadbean().getLogueado().getUserid());
+            }
+
+            //entidad.setActivo(Boolean.FALSE);
+            ejbEntidades.remove(entidad, getSeguridadbean().getLogueado().getUserid());
+        } catch (BorrarException | ConsultarException ex) {
+            Logger.getLogger(AsistentesBean.class.getName()).log(Level.SEVERE, null, ex);
         }
 
         formulario.cancelar();

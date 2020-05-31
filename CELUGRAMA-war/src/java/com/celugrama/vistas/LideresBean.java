@@ -6,14 +6,27 @@
 package com.celugrama.vistas;
 
 import com.celugrama.comun.ParametrosCelugramaBean;
+import com.celugrama.entidades.Asistenciacelulas;
+import com.celugrama.entidades.Asistencias;
+import com.celugrama.entidades.Celulas;
+import com.celugrama.entidades.Crecimientos;
 import com.celugrama.entidades.Entidades;
+import com.celugrama.entidades.Gruposusuarios;
+import com.celugrama.entidades.Gruposusuarios_;
 import com.celugrama.entidades.Perfiles;
 import com.celugrama.entidades.Roles;
+import com.celugrama.entidades.Temas;
+import com.celugrama.excepciones.BorrarException;
 import com.celugrama.excepciones.ConsultarException;
 import com.celugrama.excepciones.GrabarException;
 import com.celugrama.excepciones.InsertarException;
-import com.celugrama.seguridad.EntidadesBean;
+import com.celugrama.servicios.AsistenciacelulasFacade;
+import com.celugrama.servicios.AsistenciasFacade;
+import com.celugrama.servicios.CelulasFacade;
+import com.celugrama.servicios.CrecimientosFacade;
 import com.celugrama.servicios.EntidadesFacade;
+import com.celugrama.servicios.GruposusuariosFacade;
+import com.celugrama.servicios.TemasFacade;
 import com.celugrama.utilitarios.Codificador;
 import com.celugrama.utilitarios.Formulario;
 import com.celugrama.utilitarios.MensajesErrores;
@@ -24,10 +37,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -38,13 +49,9 @@ import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.ViewScoped;
 import javax.faces.context.FacesContext;
-import javax.faces.event.ValueChangeEvent;
-import javax.faces.model.SelectItem;
-import org.icefaces.ace.component.autocompleteentry.AutoCompleteEntry;
 import org.icefaces.ace.component.fileentry.FileEntry;
 import org.icefaces.ace.component.fileentry.FileEntryEvent;
 import org.icefaces.ace.component.fileentry.FileEntryResults;
-import org.icefaces.ace.event.TextChangeEvent;
 import org.icefaces.ace.model.table.LazyDataModel;
 import org.icefaces.ace.model.table.SortCriteria;
 import org.mozilla.universalchardet.UniversalDetector;
@@ -85,6 +92,18 @@ public class LideresBean {
 
     @EJB
     private EntidadesFacade ejbEntidades;
+    @EJB
+    private CelulasFacade ejbCelulas;
+    @EJB
+    private TemasFacade ejbTemas;
+    @EJB
+    private CrecimientosFacade ejbCrecimientos;
+    @EJB
+    private AsistenciacelulasFacade ejbAsistenciacelulas;
+    @EJB
+    private AsistenciasFacade ejbAsistencias;
+    @EJB
+    private GruposusuariosFacade ejbGruposusuarios;
 
     @PostConstruct
     private void activar() {
@@ -127,7 +146,7 @@ public class LideresBean {
             return null;
         }
         entidad = new Entidades();
-        int valor = 0;
+        int valor = traerUltimoId();
         String codigo = generarCodigo(valor);
         Boolean parar = false;
         while (!parar) {
@@ -153,29 +172,31 @@ public class LideresBean {
         return null;
     }
 
-    private String generarCodigo(int valor) {
+    private Integer traerUltimoId() {
+        Integer valor = 0;
         try {
-            if (valor != 0) {
-                Map parametros = new HashMap();
-                parametros.put(";where", "o.tipo='L'");
-                return "CODL-" + (ejbEntidades.contar(parametros) + valor);
-            } else {
-                Map parametros = new HashMap();
-                parametros.put(";where", "o.tipo='L'");
-                return "CODL-" + ejbEntidades.contar(parametros);
+
+            Map parameter = new HashMap();
+            parameter.put(";orden", "o.id desc");
+            if (ejbEntidades.contar(parameter) > 0) {
+                valor = ejbEntidades.contar(parameter);
+                return valor;
             }
         } catch (ConsultarException ex) {
-            Logger.getLogger(AsistentesBean.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(CelulasABean.class.getName()).log(Level.SEVERE, null, ex);
         }
+        return valor;
+    }
 
-        return null;
+    private String generarCodigo(int valor) {
+        return "CODL-" + valor;
     }
 
     public String modificar() {
-//        if (!menusBean.getPerfil().getModificacion()) {
-//            MensajesErrores.advertencia("No tiene autorización para modificar un registro");
-//            return null;
-//        }
+        if (!perfil.getModificacion()) {
+            MensajesErrores.advertencia("No tiene autorización para modificar un registro");
+            return null;
+        }
         entidad = (Entidades) entidades.getRowData();
         formulario.editar();
         return null;
@@ -252,36 +273,36 @@ public class LideresBean {
             MensajesErrores.advertencia("Codigo es obligatorio");
             return true;
         }
-        String codigo[] = entidad.getCodigo().split("-");
 
-        if (!codigo[0].equals("CODL")) {
-            MensajesErrores.advertencia("El codigo debe seguir el siguiente formato CODL-1");
-            return true;
+        Map parametros = new HashMap();
+        if (formulario.isNuevo()) {
+            parametros.put(";where", "o.codigo=:codigo");
+            parametros.put("codigo", entidad.getCodigo());
+        } else {
+            parametros.put(";where", "o.codigo=:codigo and o.id!=:id");
+            parametros.put("codigo", entidad.getCodigo());
+            parametros.put("id", entidad.getId());
         }
-        
+
+        try {
+            List<Entidades> listadoEntidades = ejbEntidades.encontarParametros(parametros);
+            if (!listadoEntidades.isEmpty()) {
+                MensajesErrores.advertencia("Codigo repetido");
+                return true;
+            }
+//        String codigo[] = entidad.getCodigo().split("-");
+//
+//        if (!codigo[0].equals("CODL")) {
+//            MensajesErrores.advertencia("El codigo debe seguir el siguiente formato CODL-1");
+//            return true;
+//        }
+        } catch (ConsultarException ex) {
+            Logger.getLogger(LideresBean.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
         if ((entidad.getUserid() == null) || (entidad.getUserid().isEmpty())) {
             MensajesErrores.advertencia("Codigo es obligatorio");
             return true;
-        }
-
-        Map parametros = new HashMap();
-        String where= "o.userid=:userid ";
-        
-        if (entidad.getId() !=  null) {
-            where += "and id!=:id";
-            parametros.put("id",entidad.getId());
-        }
-        parametros.put(";where",where);
-        parametros.put("userid", entidad.getUserid());
-        List<Entidades> listado;
-        try {
-            listado = ejbEntidades.encontarParametros(parametros);
-            if (!listado.isEmpty()) {
-                MensajesErrores.advertencia("Usuario del lider ya existe");
-                return true;
-            }
-        } catch (ConsultarException ex) {
-            Logger.getLogger(LideresBean.class.getName()).log(Level.SEVERE, null, ex);
         }
 
         if ((entidad.getNombres() == null) || (entidad.getNombres().isEmpty())) {
@@ -302,25 +323,37 @@ public class LideresBean {
         }
 
         try {
-            Map parametros = new HashMap();
-            parametros.put(";where", "o.codigo=:codigo");
-            parametros.put("codigo", entidad.getCodigo());
-            List<Entidades> listadoEntidades = ejbEntidades.encontarParametros(parametros);
-            if (!listadoEntidades.isEmpty()) {
-                MensajesErrores.advertencia("Codigo de lider ya existe");
-                return null;
-            }
+
+//            if (!listadoEntidades.isEmpty()) {
+//                int valor = traerUltimoId();           
+//                Boolean parar = false;
+//                while (!parar) {
+//                    parametros = new HashMap();
+//                    parametros.put(";where", "o.codigo=:codigo");
+//                    parametros.put("codigo", entidad.getCodigo());
+//                    try {
+//                         List<Entidades> listadoEntidadesAux = ejbEntidades.encontarParametros(parametros);
+//                        if (listadoEntidadesAux.isEmpty()) {
+//                            parar = true;
+//                            break;
+//                        }
+//                    } catch (ConsultarException ex) {
+//                        Logger.getLogger(AsistentesBean.class.getName()).log(Level.SEVERE, null, ex);
+//                    }                   
+//                    entidad.setCodigo(generarCodigo(valor));
+//                    valor++;
+//
+//                }
+//            }
             entidad.setActivo(Boolean.TRUE);
             entidad.setTipo("L");
-//            Codificador cod = new Codificador();
-//            entidad.setPwd(cod.getEncoded(entidad.getTelefono(), "MD5"));
+            Codificador cod = new Codificador();
+            entidad.setPwd(cod.getEncoded(entidad.getCodigo(), "MD5"));
             ejbEntidades.create(entidad, getSeguridadbean().getLogueado().getUserid());
 
         } catch (InsertarException ex) {
             MensajesErrores.fatal(ex.getMessage() + "-" + ex.getCause());
             Logger.getLogger("").log(Level.SEVERE, null, ex);
-        } catch (ConsultarException ex) {
-            Logger.getLogger(LideresBean.class.getName()).log(Level.SEVERE, null, ex);
         }
         formulario.cancelar();
         buscar();
@@ -337,7 +370,8 @@ public class LideresBean {
             return null;
         }
         try {
-
+            Codificador cod = new Codificador();
+            entidad.setPwd(cod.getEncoded(entidad.getCodigo(), "MD5"));
             entidad.setActivo(Boolean.TRUE);
             ejbEntidades.edit(entidad, getSeguridadbean().getLogueado().getUserid());
 
@@ -356,18 +390,58 @@ public class LideresBean {
             return null;
         }
         try {
-            entidad.setActivo(Boolean.FALSE);
-            ejbEntidades.edit(entidad, getSeguridadbean().getLogueado().getUserid());
-        } catch (GrabarException ex) {
-            MensajesErrores.fatal(ex.getMessage() + "-" + ex.getCause());
-            Logger.getLogger("").log(Level.SEVERE, null, ex);
+            //entidad.setActivo(Boolean.FALSE);
+            Map parametros = new HashMap();
+            parametros.put(";where", "o.lider=:lider");
+            parametros.put("lider", entidad);
+            List<Celulas> listaCelulas = ejbCelulas.encontarParametros(parametros);
+            for (Celulas c : listaCelulas) {
+                parametros = new HashMap();
+                parametros.put(";where", "o.celula=:celula");
+                parametros.put("celula", c);
+
+                List<Temas> listaTemas = ejbTemas.encontarParametros(parametros);
+
+                List<Crecimientos> listaCrecimientos = ejbCrecimientos.encontarParametros(parametros);
+                for (Crecimientos cr : listaCrecimientos) {
+                    ejbCrecimientos.remove(cr, getSeguridadbean().getLogueado().getUserid());
+                }
+
+                List<Asistenciacelulas> listaAsistenciasCelulas = ejbAsistenciacelulas.encontarParametros(parametros);
+                for (Asistenciacelulas ac : listaAsistenciasCelulas) {
+                    parametros = new HashMap();
+                    parametros.put(";where", "o.asistenciacelula=:asistenciacelula");
+                    parametros.put("asistenciacelula", ac);
+                    List<Asistencias> listaAsistencias = ejbAsistencias.encontarParametros(parametros);
+                    for (Asistencias a : listaAsistencias) {
+                        ejbAsistencias.remove(a, getSeguridadbean().getLogueado().getUserid());
+                    }
+                    ejbAsistenciacelulas.remove(ac, getSeguridadbean().getLogueado().getUserid());
+                }
+
+                for (Temas t : listaTemas) {
+                    ejbTemas.remove(t, getSeguridadbean().getLogueado().getUserid());
+                }
+                ejbCelulas.remove(c, getSeguridadbean().getLogueado().getUserid());
+            }
+            parametros = new HashMap();
+            parametros.put(";where", "o.usuario=:usuario");
+            parametros.put("usuario", entidad);
+            List<Gruposusuarios> listaGrupos = ejbGruposusuarios.encontarParametros(parametros);
+            for (Gruposusuarios gu : listaGrupos) {
+                ejbGruposusuarios.remove(gu, getSeguridadbean().getLogueado().getUserid());
+            }
+
+            ejbEntidades.remove(entidad, getSeguridadbean().getLogueado().getUserid());
+        } catch (BorrarException | ConsultarException ex) {
+            Logger.getLogger(LideresBean.class.getName()).log(Level.SEVERE, null, ex);
         }
 
         formulario.cancelar();
         buscar();
         return null;
     }
-    
+
     public String cargarDatos() {
         formularioSubida.insertar();
         return null;

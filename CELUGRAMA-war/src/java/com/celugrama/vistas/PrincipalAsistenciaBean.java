@@ -192,7 +192,7 @@ public class PrincipalAsistenciaBean {
     private void buscarTemas() {
         listaTemas = new LinkedList<>();
         Map parametros = new HashMap();
-        parametros.put(";where", "o.celula=:celula");
+        parametros.put(";where", "o.celula=:celula and o.activo = true");
         parametros.put("celula", celula);
         try {
             listaTemas = ejbTemas.encontarParametros(parametros);
@@ -229,8 +229,8 @@ public class PrincipalAsistenciaBean {
         return null;
     }
 
-    public String asistencia() {
-        setAsistencia(asitencias.get(formulario.getFila().getRowIndex()));
+    public String asistencia(Asistenciacelulas asis) {
+        setAsistencia(asis);
         asistenciasaux = new LinkedList<>();
         Map parametros = new HashMap();
         parametros.put(";where", "o.celula=:c and o.entidad=:e");

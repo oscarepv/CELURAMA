@@ -331,7 +331,7 @@ public class ChartABean implements Serializable {
         barDemoXAxisU = new Axis() {
             {
                 setType(AxisType.CATEGORY);
-                setLabel("U.de la visa");
+                setLabel("U. de la vida");
             }
         };
 
@@ -355,7 +355,7 @@ public class ChartABean implements Serializable {
         barDemoXAxisC = new Axis() {
             {
                 setType(AxisType.CATEGORY);
-                setLabel("Capacitacion Destino");
+                setLabel("Capacitación Destino");
             }
         };
         formulario.editar();
@@ -464,7 +464,7 @@ public class ChartABean implements Serializable {
     private void buscarTemas() {
         listaTemas = new LinkedList<>();
         Map parametros = new HashMap();
-        parametros.put(";where", "o.celula=:celula");
+        parametros.put(";where", "o.celula=:celula and o.activo=true");
         parametros.put("celula", celula);
         try {
             List<Temas> aux = ejbTemas.encontarParametros(parametros);

@@ -206,7 +206,7 @@ public class ReporteCelulaBean {
     private void buscarTemas() {
         listaTemas = new LinkedList<>();
         Map parametros = new HashMap();
-        parametros.put(";where", "o.celula=:celula");
+        parametros.put(";where", "o.celula=:celula and o.activo=true");
         parametros.put("celula", celula);
         try {
             List<Temas> aux = ejbTemas.encontarParametros(parametros);
@@ -491,19 +491,19 @@ public class ReporteCelulaBean {
             titulos = new LinkedList<>();
             if (!listaTemas.isEmpty()) {
                 int semana = 1;
-                titulos.add(new AuxiliarReporte("String", 4, AuxiliarReporte.ALIGN_CENTER, 8, false, "SEMANA", 1, 0, true));
-                titulos.add(new AuxiliarReporte("String", 4, AuxiliarReporte.ALIGN_CENTER, 8, false, "TEMA", 1, 0, true));
-                titulos.add(new AuxiliarReporte("String", 4, AuxiliarReporte.ALIGN_CENTER, 8, false, "OBSERVACION", 1, 0, true));
-                titulos.add(new AuxiliarReporte("String", 4, AuxiliarReporte.ALIGN_CENTER, 8, false, "FECHA", 1, 0, true));
+                titulos.add(new AuxiliarReporte("String", 8, AuxiliarReporte.ALIGN_CENTER, 8, false, "SEMANA", 1, 0, true));
+                titulos.add(new AuxiliarReporte("String", 8, AuxiliarReporte.ALIGN_CENTER, 8, false, "TEMA", 4, 0, true));
+                titulos.add(new AuxiliarReporte("String", 8, AuxiliarReporte.ALIGN_CENTER, 8, false, "OBSERVACION", 2, 0, true));
+                titulos.add(new AuxiliarReporte("String", 8, AuxiliarReporte.ALIGN_CENTER, 8, false, "FECHA", 1, 0, true));
                 for (Temas t : listaTemas) {
-                    columnasExternas.add(new AuxiliarReporte("String", 4, AuxiliarReporte.ALIGN_LEFT, 8, false, String.valueOf(semana), 1, 0, false));
-                    columnasExternas.add(new AuxiliarReporte("String", 4, AuxiliarReporte.ALIGN_LEFT, 8, false, t.getTemas() == null ? "S/R" : t.getTemas(), 1, 0, false));
-                    columnasExternas.add(new AuxiliarReporte("String", 4, AuxiliarReporte.ALIGN_LEFT, 8, false, t.getObservacion() == null ? "S/R" : t.getObservacion(), 1, 0, false));
-                    columnasExternas.add(new AuxiliarReporte("String", 4, AuxiliarReporte.ALIGN_LEFT, 8, false, t.getFecha() == null ? "S/R" : getTextoFecha(t.getFecha()), 1, 0, false));
+                    columnasExternas.add(new AuxiliarReporte("String", 8, AuxiliarReporte.ALIGN_LEFT, 8, false, String.valueOf(semana), 1, 0, false));
+                    columnasExternas.add(new AuxiliarReporte("String", 8, AuxiliarReporte.ALIGN_LEFT, 8, false, t.getTemas() == null ? "S/R" : t.getTemas(), 4, 0, false));
+                    columnasExternas.add(new AuxiliarReporte("String", 8, AuxiliarReporte.ALIGN_LEFT, 8, false, t.getObservacion() == null ? "S/R" : t.getObservacion(), 2, 0, false));
+                    columnasExternas.add(new AuxiliarReporte("String", 8, AuxiliarReporte.ALIGN_LEFT, 8, false, t.getFecha() == null ? "S/R" : getTextoFecha(t.getFecha()), 1, 0, false));
                     semana++;
                 }
             }
-            pdf.agregarTabla(titulos, columnasExternas, 4, 100, null, 0);
+            pdf.agregarTabla(titulos, columnasExternas, 8, 100, null, 0);
             pdf.agregaParrafo(" ");
             pdf.agregaParrafo(" ");
 
@@ -592,33 +592,33 @@ public class ReporteCelulaBean {
                     columnasInternas = new LinkedList<>();
 
                     if (numero == 1) {
-                        for (int i = 0; i < 4; i++) {
+                        for (int i = 0; i < 5; i++) {
                             titulos.add(new AuxiliarReporte("String", 4, AuxiliarReporte.ALIGN_CENTER, 6, false, String.valueOf(indice), 1, 0, true));
                             indice++;
                         }
                     }
 
-                    for (int i = 0; i < 4; i++) {
+                    for (int i = 0; i < 5; i++) {
                         columnasInternas.add(new AuxiliarReporte("String", 4, AuxiliarReporte.ALIGN_LEFT, 8, false, " ", 1, 0, false));
                     }
 
-                    columnasExternas.add(new AuxiliarReporte("Table", 1, AuxiliarReporte.ALIGN_LEFT, 8, false, pdf.retornarTabla(titulos, columnasInternas, 4, 100, null), 0, 0, false));
+                    columnasExternas.add(new AuxiliarReporte("Table", 1, AuxiliarReporte.ALIGN_LEFT, 8, false, pdf.retornarTabla(titulos, columnasInternas, 5, 100, null), 0, 0, false));
 
                     indice = 1;
                     columnasInternas = new LinkedList<>();
                     titulos = new LinkedList<>();
                     if (numero == 1) {
-                        for (int i = 0; i < 4; i++) {
-                            titulos.add(new AuxiliarReporte("String", 4, AuxiliarReporte.ALIGN_CENTER, 6, false, String.valueOf(indice), 1, 0, true));
+                        for (int i = 0; i < 5; i++) {
+                            titulos.add(new AuxiliarReporte("String", 5, AuxiliarReporte.ALIGN_CENTER, 6, false, String.valueOf(indice), 1, 0, true));
                             indice++;
                         }
                     }
 
-                    for (int i = 0; i < 4; i++) {
-                        columnasInternas.add(new AuxiliarReporte("String", 4, AuxiliarReporte.ALIGN_LEFT, 8, false, " ", 1, 0, false));
+                    for (int i = 0; i < 5; i++) {
+                        columnasInternas.add(new AuxiliarReporte("String", 5, AuxiliarReporte.ALIGN_LEFT, 8, false, " ", 1, 0, false));
                     }
 
-                    columnasExternas.add(new AuxiliarReporte("Table", 1, AuxiliarReporte.ALIGN_LEFT, 8, false, pdf.retornarTabla(titulos, columnasInternas, 4, 100, null), 0, 0, false));
+                    columnasExternas.add(new AuxiliarReporte("Table", 1, AuxiliarReporte.ALIGN_LEFT, 8, false, pdf.retornarTabla(titulos, columnasInternas, 5, 100, null), 0, 0, false));
 
                     columnasInternas = new LinkedList<>();
                     titulos = new LinkedList<>();
@@ -660,33 +660,33 @@ public class ReporteCelulaBean {
                     columnasInternas = new LinkedList<>();
 
                     if (numero == 1) {
-                        for (int j = 0; j < 4; j++) {
-                            titulos.add(new AuxiliarReporte("String", 4, AuxiliarReporte.ALIGN_CENTER, 6, false, String.valueOf(indice), 1, 0, true));
+                        for (int j = 0; j < 5; j++) {
+                            titulos.add(new AuxiliarReporte("String", 5, AuxiliarReporte.ALIGN_CENTER, 6, false, String.valueOf(indice), 1, 0, true));
                             indice++;
                         }
                     }
 
-                    for (int j = 0; j < 4; j++) {
-                        columnasInternas.add(new AuxiliarReporte("String", 4, AuxiliarReporte.ALIGN_LEFT, 8, false, " ", 1, 0, false));
+                    for (int j = 0; j < 5; j++) {
+                        columnasInternas.add(new AuxiliarReporte("String", 5, AuxiliarReporte.ALIGN_LEFT, 8, false, " ", 1, 0, false));
                     }
 
-                    columnasExternas.add(new AuxiliarReporte("Table", 1, AuxiliarReporte.ALIGN_LEFT, 8, false, pdf.retornarTabla(titulos, columnasInternas, 4, 100, null), 0, 0, false));
+                    columnasExternas.add(new AuxiliarReporte("Table", 1, AuxiliarReporte.ALIGN_LEFT, 8, false, pdf.retornarTabla(titulos, columnasInternas, 5, 100, null), 0, 0, false));
 
                     indice = 1;
                     columnasInternas = new LinkedList<>();
                     titulos = new LinkedList<>();
                     if (numero == 1) {
-                        for (int j = 0; j < 4; j++) {
-                            titulos.add(new AuxiliarReporte("String", 4, AuxiliarReporte.ALIGN_CENTER, 6, false, String.valueOf(indice), 1, 0, true));
+                        for (int j = 0; j < 5; j++) {
+                            titulos.add(new AuxiliarReporte("String", 5, AuxiliarReporte.ALIGN_CENTER, 6, false, String.valueOf(indice), 1, 0, true));
                             indice++;
                         }
                     }
 
-                    for (int j = 0; j < 4; j++) {
-                        columnasInternas.add(new AuxiliarReporte("String", 4, AuxiliarReporte.ALIGN_LEFT, 8, false, " ", 1, 0, false));
+                    for (int j = 0; j < 5; j++) {
+                        columnasInternas.add(new AuxiliarReporte("String", 5, AuxiliarReporte.ALIGN_LEFT, 8, false, " ", 1, 0, false));
                     }
 
-                    columnasExternas.add(new AuxiliarReporte("Table", 1, AuxiliarReporte.ALIGN_LEFT, 8, false, pdf.retornarTabla(titulos, columnasInternas, 4, 100, null), 0, 0, false));
+                    columnasExternas.add(new AuxiliarReporte("Table", 1, AuxiliarReporte.ALIGN_LEFT, 8, false, pdf.retornarTabla(titulos, columnasInternas, 5, 100, null), 0, 0, false));
 
                     columnasInternas = new LinkedList<>();
                     titulos = new LinkedList<>();
@@ -725,7 +725,7 @@ public class ReporteCelulaBean {
                     columnasInternas.add(new AuxiliarReporte("String", 5, AuxiliarReporte.ALIGN_CENTER, 6, false, " ", 1, 0, false));
                 }
             }
-            columnasExternas.add(new AuxiliarReporte("Table", 1, AuxiliarReporte.ALIGN_LEFT, 8, false, pdf.retornarTabla(null, columnasInternas, listaTemas.size(), 100, null), 0, 0, false));
+            columnasExternas.add(new AuxiliarReporte("Table", 1, AuxiliarReporte.ALIGN_LEFT, 8, false, pdf.retornarTabla(null, columnasInternas, 5, 100, null), 0, 0, false));
 
             columnasExternas.add(new AuxiliarReporte("String", 9, AuxiliarReporte.ALIGN_LEFT, 8, false, " ", 3, 0, false));
             pdf.agregarTabla(titulosA, columnasExternas, 9, 100, null, 0);
@@ -734,19 +734,19 @@ public class ReporteCelulaBean {
             columnasExternas = new LinkedList<>();
             titulos = new LinkedList<>();
 
-            titulos.add(new AuxiliarReporte("String", 4, AuxiliarReporte.ALIGN_CENTER, 8, false, "SEMANA", 1, 0, true));
-            titulos.add(new AuxiliarReporte("String", 4, AuxiliarReporte.ALIGN_CENTER, 8, false, "TEMA", 1, 0, true));
-            titulos.add(new AuxiliarReporte("String", 4, AuxiliarReporte.ALIGN_CENTER, 8, false, "OBSERVACION", 1, 0, true));
-            titulos.add(new AuxiliarReporte("String", 4, AuxiliarReporte.ALIGN_CENTER, 8, false, "FECHA", 1, 0, true));
+            titulos.add(new AuxiliarReporte("String", 8, AuxiliarReporte.ALIGN_CENTER, 8, false, "SEMANA", 1, 0, true));
+            titulos.add(new AuxiliarReporte("String", 8, AuxiliarReporte.ALIGN_CENTER, 8, false, "TEMA", 4, 0, true));
+            titulos.add(new AuxiliarReporte("String", 8, AuxiliarReporte.ALIGN_CENTER, 8, false, "OBSERVACION", 2, 0, true));
+            titulos.add(new AuxiliarReporte("String", 8, AuxiliarReporte.ALIGN_CENTER, 8, false, "FECHA", 1, 0, true));
             for (int i = 0; i < 5; i++) {
-                columnasExternas.add(new AuxiliarReporte("String", 4, AuxiliarReporte.ALIGN_LEFT, 8, false, String.valueOf((i + 1)), 1, 0, false));
-                columnasExternas.add(new AuxiliarReporte("String", 4, AuxiliarReporte.ALIGN_LEFT, 8, false, " ", 1, 0, false));
-                columnasExternas.add(new AuxiliarReporte("String", 4, AuxiliarReporte.ALIGN_LEFT, 8, false, " ", 1, 0, false));
-                columnasExternas.add(new AuxiliarReporte("String", 4, AuxiliarReporte.ALIGN_LEFT, 8, false, " ", 1, 0, false));
+                columnasExternas.add(new AuxiliarReporte("String", 8, AuxiliarReporte.ALIGN_LEFT, 8, false, String.valueOf((i + 1)), 1, 0, false));
+                columnasExternas.add(new AuxiliarReporte("String", 8, AuxiliarReporte.ALIGN_LEFT, 8, false, " ", 4, 0, false));
+                columnasExternas.add(new AuxiliarReporte("String", 8, AuxiliarReporte.ALIGN_LEFT, 8, false, " ", 2, 0, false));
+                columnasExternas.add(new AuxiliarReporte("String", 8, AuxiliarReporte.ALIGN_LEFT, 8, false, " ", 1, 0, false));
 
             }
 
-            pdf.agregarTabla(titulos, columnasExternas, 4, 100, null, 0);
+            pdf.agregarTabla(titulos, columnasExternas, 8, 100, null, 0);
             pdf.agregaParrafo(" ");
 
             columnasExternas = new LinkedList<>();

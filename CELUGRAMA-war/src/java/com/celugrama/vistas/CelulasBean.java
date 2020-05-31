@@ -7,6 +7,7 @@ package com.celugrama.vistas;
 
 import com.celugrama.comun.ParametrosCelugramaBean;
 import com.celugrama.entidades.Asistenciacelulas;
+import com.celugrama.entidades.Asistencias;
 import com.celugrama.entidades.Celulas;
 import com.celugrama.entidades.Codigos;
 import com.celugrama.entidades.Crecimientos;
@@ -18,6 +19,7 @@ import com.celugrama.excepciones.ConsultarException;
 import com.celugrama.excepciones.GrabarException;
 import com.celugrama.excepciones.InsertarException;
 import com.celugrama.servicios.AsistenciacelulasFacade;
+import com.celugrama.servicios.AsistenciasFacade;
 import com.celugrama.servicios.CelulasFacade;
 import com.celugrama.servicios.CodigosFacade;
 import com.celugrama.servicios.CrecimientosFacade;
@@ -98,6 +100,8 @@ public class CelulasBean {
     private CodigosFacade ejbCodigos;
     @EJB
     private CrecimientosFacade ejbCrecimientos;
+    @EJB
+    private AsistenciasFacade ejbAsistencias;
 
     public CelulasBean() {
         celulas = new LazyDataModel<Celulas>() {
@@ -212,16 +216,15 @@ public class CelulasBean {
             return null;
         }
         celula = new Celulas();
-        int valor = 0;
+        int valor = traerUltimoId();
         String codigo = generarCodigo(valor);
         Boolean parar = false;
         while (!parar) {
             Map parametros = new HashMap();
             parametros.put(";where", "o.codigo=:codigo");
             parametros.put("codigo", codigo);
-            List<Celulas> listadoCelulas;
             try {
-                listadoCelulas = ejbCelulas.encontarParametros(parametros);
+                List<Celulas> listadoCelulas = ejbCelulas.encontarParametros(parametros);
                 if (listadoCelulas.isEmpty()) {
                     parar = true;
                     break;
@@ -240,22 +243,26 @@ public class CelulasBean {
         return null;
     }
 
-    private String generarCodigo(int valor) {
+    private Integer traerUltimoId() {
+        Integer valor = 0;
         try {
-            if (valor != 0) {
-                Map parametros = new HashMap();
-                parametros.put(";orden", "o.id desc");
-                return "CODC-" + (ejbCelulas.contar(parametros) + valor);
-            } else {
-                Map parametros = new HashMap();
-                parametros.put(";orden", "o.id desc");
-                return "CODC-" + ejbCelulas.contar(parametros);
+
+            Map parameter = new HashMap();
+            parameter.put(";orden", "o.id desc");
+            List<Celulas> listaCelula = ejbCelulas.encontarParametros(parameter);
+            if (!listaCelula.isEmpty()) {
+                valor = ejbCelulas.contar(parameter);
+                return valor;
             }
+
         } catch (ConsultarException ex) {
             Logger.getLogger(CelulasABean.class.getName()).log(Level.SEVERE, null, ex);
         }
+        return valor;
+    }
 
-        return null;
+    private String generarCodigo(int valor) {
+        return "CODC-" + valor;
     }
 
     public String insertar() {
@@ -268,6 +275,30 @@ public class CelulasBean {
         }
 
         try {
+            Map parametros = new HashMap();
+            parametros.put(";where", "o.codigo=:codigo");
+            parametros.put("codigo", celula.getCodigo());
+            List<Celulas> listadoCelulas = ejbCelulas.encontarParametros(parametros);
+            if (!listadoCelulas.isEmpty()) {
+                Boolean parar = false;
+                int valor = traerUltimoId();
+                while (!parar) {
+                    Map parameters = new HashMap();
+                    parameters.put(";where", "o.codigo=:codigo");
+                    parameters.put("codigo", celula.getCodigo());
+                    List<Celulas> listadoCelulaAux = ejbCelulas.encontarParametros(parameters);
+
+                    if (listadoCelulaAux.isEmpty()) {
+                        parar = true;
+                        break;
+                    }
+                    celula.setCodigo(generarCodigo(valor));
+                    valor = valor++;
+
+                }
+//                MensajesErrores.advertencia("Codigo de celula ya existe");
+//                return null;
+            }
             celula.setRed(red.getParametros());
             celula.setActivo(Boolean.TRUE);
             celula.setLider(getSeguridadbean().getLogueado());
@@ -301,6 +332,8 @@ public class CelulasBean {
         } catch (InsertarException ex) {
             MensajesErrores.fatal(ex.getMessage() + "-" + ex.getCause());
             Logger.getLogger("").log(Level.SEVERE, null, ex);
+        } catch (ConsultarException ex) {
+            Logger.getLogger(CelulasBean.class.getName()).log(Level.SEVERE, null, ex);
         }
         formulario.cancelar();
         buscar();
@@ -450,11 +483,33 @@ public class CelulasBean {
             return null;
         }
         try {
-            celula.setActivo(Boolean.FALSE);
-            ejbCelulas.edit(celula, getSeguridadbean().getLogueado().getUserid());
-        } catch (GrabarException ex) {
-            MensajesErrores.fatal(ex.getMessage() + "-" + ex.getCause());
-            Logger.getLogger("").log(Level.SEVERE, null, ex);
+            //celula.setActivo(Boolean.FALSE);
+            Map parametros = new HashMap();
+            parametros.put(";where", "o.celula=:celula");
+            parametros.put("celula", celula);
+            List<Temas> listaTemasAux = ejbTemas.encontarParametros(parametros);
+            List<Crecimientos> listaCrecimientosAux = ejbCrecimientos.encontarParametros(parametros);
+            for (Crecimientos cr : listaCrecimientosAux) {
+                ejbCrecimientos.remove(cr, getSeguridadbean().getLogueado().getUserid());
+            }
+            List<Asistenciacelulas> listaAsistenciasCelulas = ejbAsistenciacelulas.encontarParametros(parametros);
+            for (Asistenciacelulas ac : listaAsistenciasCelulas) {
+                parametros = new HashMap();
+                parametros.put(";where", "o.asistenciacelula=:asistenciacelula");
+                parametros.put("asistenciacelula", ac);
+                List<Asistencias> listaAsistencias = ejbAsistencias.encontarParametros(parametros);
+                for (Asistencias a : listaAsistencias) {
+                    ejbAsistencias.remove(a, getSeguridadbean().getLogueado().getUserid());
+                }
+                ejbAsistenciacelulas.remove(ac, getSeguridadbean().getLogueado().getUserid());
+            }
+            for (Temas t : listaTemasAux) {
+                ejbTemas.remove(t, getSeguridadbean().getLogueado().getUserid());
+            }
+
+            ejbCelulas.remove(celula, getSeguridadbean().getLogueado().getUserid());
+        } catch (BorrarException | ConsultarException ex) {
+            Logger.getLogger(CelulasBean.class.getName()).log(Level.SEVERE, null, ex);
         }
 
         formulario.cancelar();
@@ -465,7 +520,7 @@ public class CelulasBean {
     public void buscarTemas() {
         listaTemas = new LinkedList<>();
         Map parametros = new HashMap();
-        parametros.put(";where", "o.celula=:celula");
+        parametros.put(";where", "o.celula=:celula and o.activo='true' ");
         parametros.put("celula", celula);
         try {
             listaTemas = ejbTemas.encontarParametros(parametros);
@@ -638,9 +693,17 @@ public class CelulasBean {
 
     public String borrarTema() {
         try {
+            //tema.setActivo(false);
+            Map parametros = new HashMap();
+            parametros.put(";where", "o.tema=:tema");
+            parametros.put("tema", tema);
+            List<Asistencias> listaAsistencias = ejbAsistencias.encontarParametros(parametros);
+            for (Asistencias a : listaAsistencias) {
+                ejbAsistencias.remove(a, getSeguridadbean().getLogueado().getUserid());
+            }
             ejbTemas.remove(tema, getSeguridadbean().getLogueado().getUserid());
-        } catch (BorrarException ex) {
-            Logger.getLogger(CelulasBean.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (BorrarException | ConsultarException ex) {
+            Logger.getLogger(CelulasABean.class.getName()).log(Level.SEVERE, null, ex);
         }
         buscarTemas();
         formularioTema.cancelar();
@@ -727,7 +790,7 @@ public class CelulasBean {
                 Logger.getLogger(CelulasBean.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-        
+
         formularioAsistentes.cancelar();
         buscarAsistentesCelulaTotales();
         return null;

@@ -7,19 +7,23 @@ package com.celugrama.vistas;
 
 import com.celugrama.comun.ParametrosCelugramaBean;
 import com.celugrama.entidades.Asistenciacelulas;
+import com.celugrama.entidades.Asistencias;
 import com.celugrama.entidades.Celulas;
 import com.celugrama.entidades.Codigos;
 import com.celugrama.entidades.Crecimientos;
 import com.celugrama.entidades.Entidades;
 import com.celugrama.entidades.Perfiles;
 import com.celugrama.entidades.Temas;
+import com.celugrama.excepciones.BorrarException;
 import com.celugrama.excepciones.ConsultarException;
 import com.celugrama.excepciones.GrabarException;
 import com.celugrama.excepciones.InsertarException;
 import com.celugrama.seguridad.EntidadesBean;
 import com.celugrama.servicios.AsistenciacelulasFacade;
+import com.celugrama.servicios.AsistenciasFacade;
 import com.celugrama.servicios.CelulasFacade;
 import com.celugrama.servicios.CodigosFacade;
+import com.celugrama.servicios.CorreoRespuestaFacade;
 import com.celugrama.servicios.CrecimientosFacade;
 import com.celugrama.servicios.EntidadesFacade;
 import com.celugrama.servicios.TemasFacade;
@@ -49,6 +53,7 @@ import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.ViewScoped;
 import javax.faces.context.FacesContext;
+import javax.mail.MessagingException;
 import org.icefaces.ace.component.fileentry.FileEntry;
 import org.icefaces.ace.component.fileentry.FileEntryEvent;
 import org.icefaces.ace.component.fileentry.FileEntryResults;
@@ -115,6 +120,10 @@ public class CelulasABean {
     private CodigosFacade ejbCodigos;
     @EJB
     private CrecimientosFacade ejbCrecimientos;
+    @EJB
+    private CorreoRespuestaFacade ejbCorreo;
+    @EJB
+    private AsistenciasFacade ejbAsistencias;
 
     public CelulasABean() {
         celulas = new LazyDataModel<Celulas>() {
@@ -235,54 +244,62 @@ public class CelulasABean {
             MensajesErrores.advertencia("No tiene autorización para crear un registro");
             return null;
         }
-        celula = new Celulas();
-        asitenciasAuxGrabar = new LinkedList<>();
-        listaCrecimientos = new LinkedList<>();
-        getEntidadesBean().setEntidad(null);
-        int valor = 0;
-        String codigo = generarCodigo(valor);
-        Boolean parar = false;
-        while (!parar) {
-            Map parametros = new HashMap();
-            parametros.put(";where", "o.codigo=:codigo");
-            parametros.put("codigo", codigo);
-            List<Celulas> listadoCelulas;
-            try {
+        try {
+            celula = new Celulas();
+            asitenciasAuxGrabar = new LinkedList<>();
+            listaCrecimientos = new LinkedList<>();
+            int valor = 0;
+            getEntidadesBean().setEntidad(null);
+            getEntidadesBean().setNombresBuscar(null);
+            valor = traerUltimoId();
+            String codigo = generarCodigo(valor);
+            Boolean parar = false;
+            while (!parar) {
+                Map parametros = new HashMap();
+                parametros.put(";where", "o.codigo=:codigo");
+                parametros.put("codigo", codigo);
+                List<Celulas> listadoCelulas;
+
                 listadoCelulas = ejbCelulas.encontarParametros(parametros);
                 if (listadoCelulas.isEmpty()) {
                     parar = true;
                     break;
                 }
-            } catch (ConsultarException ex) {
-                Logger.getLogger(AsistentesBean.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            valor++;
-            codigo = generarCodigo(valor);
+                valor++;
+                codigo = generarCodigo(valor);
 
+            }
+            celula.setCodigo(codigo);
+        } catch (ConsultarException ex) {
+            Logger.getLogger(CelulasABean.class.getName()).log(Level.SEVERE, null, ex);
         }
         asitenciasAuxGrabar = new LinkedList<>();
         listaCrecimientos = new LinkedList<>();
-        celula.setCodigo(codigo);
+
         formulario.insertar();
         return null;
     }
 
     private String generarCodigo(int valor) {
+        return "CODC-" + valor;
+    }
+
+    private Integer traerUltimoId() {
+        Integer valor = 0;
         try {
-            if (valor != 0) {
-                Map parametros = new HashMap();
-                parametros.put(";orden", "o.id desc");
-                return "CODC-" + (ejbCelulas.contar(parametros) + valor);
-            } else {
-                Map parametros = new HashMap();
-                parametros.put(";orden", "o.id desc");
-                return "CODC-" + ejbCelulas.contar(parametros);
+
+            Map parameter = new HashMap();
+            parameter.put(";orden", "o.id desc");
+            List<Celulas> listaCelula = ejbCelulas.encontarParametros(parameter);
+            if (!listaCelula.isEmpty()) {
+                valor = ejbCelulas.contar(parameter);
+                return valor;
             }
+
         } catch (ConsultarException ex) {
             Logger.getLogger(CelulasABean.class.getName()).log(Level.SEVERE, null, ex);
         }
-
-        return null;
+        return valor;
     }
 
     public String buscarCelula() {
@@ -333,13 +350,30 @@ public class CelulasABean {
         }
 
         try {
+
             Map parametros = new HashMap();
             parametros.put(";where", "o.codigo=:codigo");
             parametros.put("codigo", celula.getCodigo());
             List<Celulas> listadoCelulas = ejbCelulas.encontarParametros(parametros);
             if (!listadoCelulas.isEmpty()) {
-                MensajesErrores.advertencia("Codigo de celula ya existe");
-                return null;
+                Boolean parar = false;
+                int valor = traerUltimoId();
+                while (!parar) {
+                    Map parameters = new HashMap();
+                    parameters.put(";where", "o.codigo=:codigo");
+                    parameters.put("codigo", celula.getCodigo());
+                    List<Celulas> listadoCelulaAux = ejbCelulas.encontarParametros(parameters);
+
+                    if (listadoCelulaAux.isEmpty()) {
+                        parar = true;
+                        break;
+                    }
+                    celula.setCodigo(generarCodigo(valor));
+                    valor = valor++;
+
+                }
+//                MensajesErrores.advertencia("Codigo de celula ya existe");
+//                return null;
             }
             celula.setRed(red.getParametros());
             celula.setActivo(Boolean.TRUE);
@@ -370,6 +404,7 @@ public class CelulasABean {
                     ejbCrecimientos.create(cre, getSeguridadbean().getLogueado().getUserid());
                 }
             }
+            // enviarmailCreacionCelula();
 
         } catch (InsertarException ex) {
             MensajesErrores.fatal(ex.getMessage() + "-" + ex.getCause());
@@ -379,6 +414,21 @@ public class CelulasABean {
         }
         formulario.cancelar();
         buscar();
+        return null;
+    }
+
+    public String enviarmailCreacionCelula() throws MessagingException, UnsupportedEncodingException {
+        //Se envia un Mail el Estado es Suspendido y previa peticion del Profesional la Rehabilitación
+        String email = "oscar_e1993@hotmail.com";
+        String correo = "<p><Strong>Estimado Señor/a:</Strong> " + "</p>";
+        correo += "<p style= 'text-align:justify' >Reciba un cordial saludo del Cuerpo de Bomberos del DMQ y la Bienvenida al Sistema de Resistro  de Profesionales Técnicos Especializados en Actividades de Diseño, Instalación  y Mantenimiento del Sistema de Prevención y Protección Contra Incendios según  lo establece  la Ordenanza Metropolitana Nro. 470.</p>";
+        correo += "<p style= 'text-align:justify' >El motivo de la presente es notificarle  que usted se encuentra en estado <strong>" + "</strong> de acuerdo a lo  establecido  en el Artículo 7.- <strong>SUSPENSIÓN DEL REGISTRO</strong> del Instructivo para el Registro de Profesionales Técnicos  Especializados  en Actividades de Diseño, Instalación  y Mantenimiento de Sistema de Prevención  y Protección  Contra Incendios publicado en el Registro Oficial  Nro. 337 del viernes 19 de septiembre de 2014.</p>";
+        correo += "<p style= 'text-align:justify' >Su registro se tomará nota al margen del registro de profesionales publicado en la página web  del CB-DMQ.</p>";
+        correo += "<br><br><p><Strong> Atentamente CBDMQ</Strong></p>";
+        correo += "<br><br><p>Texto generado automáticamente por el Sistema de Registro de Profesionales del CBDMQ</p>";
+        ejbCorreo.enviarCorreo(email, "Notificación del Registro", correo);
+        buscar();
+        getFormulario().cancelar();
         return null;
     }
 
@@ -495,11 +545,37 @@ public class CelulasABean {
             return null;
         }
         try {
-            celula.setActivo(Boolean.FALSE);
-            ejbCelulas.edit(celula, getSeguridadbean().getLogueado().getUserid());
-        } catch (GrabarException ex) {
-            MensajesErrores.fatal(ex.getMessage() + "-" + ex.getCause());
-            Logger.getLogger("").log(Level.SEVERE, null, ex);
+            //celula.setActivo(Boolean.FALSE);
+            Map parametros = new HashMap();
+            parametros.put(";where", "o.celula=:celula");
+            parametros.put("celula", celula);
+
+            List<Temas> listaTemasAux = ejbTemas.encontarParametros(parametros);
+
+            List<Crecimientos> listaCrecimientosAux = ejbCrecimientos.encontarParametros(parametros);
+            for (Crecimientos cr : listaCrecimientosAux) {
+                ejbCrecimientos.remove(cr, getSeguridadbean().getLogueado().getUserid());
+            }
+
+            List<Asistenciacelulas> listaAsistenciasCelulas = ejbAsistenciacelulas.encontarParametros(parametros);
+            for (Asistenciacelulas ac : listaAsistenciasCelulas) {
+                parametros = new HashMap();
+                parametros.put(";where", "o.asistenciacelula=:asistenciacelula");
+                parametros.put("asistenciacelula", ac);
+                List<Asistencias> listaAsistencias = ejbAsistencias.encontarParametros(parametros);
+                for (Asistencias a : listaAsistencias) {
+                    ejbAsistencias.remove(a, getSeguridadbean().getLogueado().getUserid());
+                }
+                ejbAsistenciacelulas.remove(ac, getSeguridadbean().getLogueado().getUserid());
+            }
+
+            for (Temas t : listaTemasAux) {
+                ejbTemas.remove(t, getSeguridadbean().getLogueado().getUserid());
+            }
+            ejbCelulas.remove(celula, getSeguridadbean().getLogueado().getUserid());
+
+        } catch (BorrarException | ConsultarException ex) {
+            Logger.getLogger(CelulasABean.class.getName()).log(Level.SEVERE, null, ex);
         }
 
         formulario.cancelar();
@@ -533,7 +609,7 @@ public class CelulasABean {
     public String nuevoTema() {
 
         tema = new Temas();
-        int valor = 0;
+        int valor = traerUltimoIdTema();
         String codigo = generarCodigoT(valor);
         Boolean parar = false;
         while (!parar) {
@@ -548,7 +624,7 @@ public class CelulasABean {
                     break;
                 }
             } catch (ConsultarException ex) {
-                Logger.getLogger(AsistentesBean.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(CelulasABean.class.getName()).log(Level.SEVERE, null, ex);
             }
             valor++;
             codigo = generarCodigoT(valor);
@@ -559,22 +635,25 @@ public class CelulasABean {
         return null;
     }
 
-    private String generarCodigoT(int valor) {
+    private Integer traerUltimoIdTema() {
+        Integer valor = 0;
         try {
-            if (valor != 0) {
-                Map parametros = new HashMap();
-                parametros.put(";orden", "o.id desc");
-                return "CODT-" + (ejbTemas.contar(parametros) + valor);
-            } else {
-                Map parametros = new HashMap();
-                parametros.put(";orden", "o.id desc");
-                return "CODT-" + ejbTemas.contar(parametros);
+
+            Map parameter = new HashMap();
+            parameter.put(";orden", "o.id desc");
+            if (ejbCelulas.contar(parameter) > 0) {
+                valor = ejbCelulas.contar(parameter);
+                return valor;
             }
+
         } catch (ConsultarException ex) {
             Logger.getLogger(CelulasABean.class.getName()).log(Level.SEVERE, null, ex);
         }
+        return valor;
+    }
 
-        return null;
+    private String generarCodigoT(int valor) {
+        return "CODT-" + valor;
     }
 
     public String insertarTema() {
@@ -584,12 +663,27 @@ public class CelulasABean {
         Map parametros = new HashMap();
         parametros.put(";where", "o.codigo=:codigo");
         parametros.put("codigo", tema.getCodigo());
-        List<Temas> listadoTemas;
         try {
-            listadoTemas = ejbTemas.encontarParametros(parametros);
+            List<Temas> listadoTemas = ejbTemas.encontarParametros(parametros);
             if (!listadoTemas.isEmpty()) {
-                MensajesErrores.advertencia("Codigo de asistente ya existe");
-                return null;
+                int valor = traerUltimoIdTema();
+                Boolean parar = false;
+                while (!parar) {
+                    parametros = new HashMap();
+                    parametros.put(";where", "o.codigo=:codigo");
+                    parametros.put("codigo", tema.getCodigo());
+                    try {
+                        List<Temas> listadoTemasAux = ejbTemas.encontarParametros(parametros);
+                        if (listadoTemasAux.isEmpty()) {
+                            parar = true;
+                            break;
+                        }
+                    } catch (ConsultarException ex) {
+                        Logger.getLogger(CelulasABean.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    tema.setCodigo(generarCodigoT(valor));
+                    valor++;
+                }
             }
         } catch (ConsultarException ex) {
             Logger.getLogger(CelulasABean.class.getName()).log(Level.SEVERE, null, ex);
@@ -663,10 +757,17 @@ public class CelulasABean {
     }
 
     public String borrarTema() {
-        tema.setActivo(false);
         try {
-            ejbTemas.edit(tema, getSeguridadbean().getLogueado().getUserid());
-        } catch (GrabarException ex) {
+            //tema.setActivo(false);
+            Map parametros = new HashMap();
+            parametros.put(";where", "o.tema=:tema");
+            parametros.put("tema", tema);
+            List<Asistencias> listaAsistencias = ejbAsistencias.encontarParametros(parametros);
+            for (Asistencias a : listaAsistencias) {
+                ejbAsistencias.remove(a, getSeguridadbean().getLogueado().getUserid());
+            }
+            ejbTemas.remove(tema, getSeguridadbean().getLogueado().getUserid());
+        } catch (BorrarException | ConsultarException ex) {
             Logger.getLogger(CelulasABean.class.getName()).log(Level.SEVERE, null, ex);
         }
         buscarTemas();

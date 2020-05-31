@@ -115,7 +115,7 @@ public class DocumentoPDF {
             tabla.setWidthPercentage(100);
             tabla.setHeaderRows(1);
             for (String v : valores) {
-                tabla.addCell(encabezadoIzquierda(v,8));
+                tabla.addCell(encabezadoIzquierda(v, 8));
             }
         } else {
             for (String v : valores) {
@@ -174,7 +174,21 @@ public class DocumentoPDF {
             }
 
             for (AuxiliarReporte v : titulos) {
-                tablaInterna.addCell(encabezadoIzquierda((String) v.getValor(),v.getTamanio()));
+                if (v.getColumnasO() != 0 && v.getFila() == 0) {
+                    PdfPCell celdaFinal = new PdfPCell(encabezadoIzquierda((String) v.getValor(), v.getTamanio()));
+                    // Indicamos cuantas columnas ocupa la celda
+                    celdaFinal.setColspan(v.getColumnasO());
+                    tablaInterna.addCell(celdaFinal);
+                } else if (v.getColumnasO() == 0 && v.getFila() == 0) {
+
+                    tablaInterna.addCell(encabezadoIzquierda((String) v.getValor(), v.getTamanio()));
+
+                } else if (v.getColumnasO() == 0 && v.getFila() != 0) {
+                    PdfPCell celdaFinal = new PdfPCell(encabezadoIzquierda((String) v.getValor(), v.getTamanio()));
+                    celdaFinal.setRowspan(v.getFila());
+                    tablaInterna.addCell(celdaFinal);
+                }
+                //tablaInterna.addCell(encabezadoIzquierda((String) v.getValor(), v.getTamanio()));
             }
 
             for (AuxiliarReporte v : valores) {
@@ -341,7 +355,7 @@ public class DocumentoPDF {
             }
 
             for (String v : titulos) {
-                tablaInterna.addCell(encabezadoIzquierda(v,8));
+                tablaInterna.addCell(encabezadoIzquierda(v, 8));
             }
 
             for (AuxiliarReporte v : valores) {
@@ -532,7 +546,7 @@ public class DocumentoPDF {
         }
 
         for (AuxiliarReporte v : titulos) {
-            tablaInterna.addCell(encabezadoIzquierda(String.valueOf(v.getValor()),v.getTamanio()));
+            tablaInterna.addCell(encabezadoIzquierda(String.valueOf(v.getValor()), v.getTamanio()));
         }
         for (AuxiliarReporte v : valores) {
             switch (v.getDato()) {
@@ -609,7 +623,6 @@ public class DocumentoPDF {
                         }
 
 //                        tablaInterna.addCell(celda(String.valueOf(valor), v.getAlineacion(), v.isNegrilla(), v.getColumnas(), 10, v.isColor()));
-                        
                         if (v.getColumnasO() != 0 && v.getFila() == 0) {
                             PdfPCell celdaFinal = new PdfPCell(celda(valor, v.getAlineacion(), v.isNegrilla(), v.getColumnas(), 10, v.isColor()));
                             // Indicamos cuantas columnas ocupa la celda
